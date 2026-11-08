@@ -9,16 +9,14 @@ venv/
 .mypy_cache/
 .ruff_cache/
 build/
-# Python/packaging dist only — keep Phase 1 frontend placeholder tracked
 /dist/
 backend/dist/
-!frontend/dist/
-!frontend/dist/**
 *.egg
 
 # Node
 node_modules/
 frontend/node_modules/
+frontend/dist/
 *.log
 
 # IDE / OS
@@ -31,5 +29,5 @@ frontend/node_modules/
 *.key
 config/.env
 .env.local
-data/
+/data/
 tmp/
