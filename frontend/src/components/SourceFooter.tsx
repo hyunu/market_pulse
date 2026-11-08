@@ -8,7 +8,7 @@ type Props = {
 export function SourceFooter({ series }: Props) {
   if (!series.length) return null
   return (
-    <footer className="mp-fade mt-8 border-t border-[var(--color-line)] pt-3 text-[10px] leading-relaxed text-[var(--color-muted)] md:mt-10">
+    <footer className="mp-fade mt-[var(--space-6)] border-t border-[var(--color-line)] pt-[var(--space-3)] text-[10px] leading-relaxed text-[var(--color-muted)] md:mt-[var(--space-6)]">
       <p className="font-semibold uppercase tracking-[0.12em] text-[var(--color-ink-soft)]">
         Sources
       </p>

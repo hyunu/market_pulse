@@ -72,6 +72,29 @@ def collect_fred(
     errors: list[str] = []
 
     try:
+        api_key = (settings.fred_api_key or "").strip()
+        if not api_key:
+            msg = (
+                "FRED_API_KEY 미설정 — FRED 공식 API 수집을 시작할 수 없습니다. "
+                "환경변수 FRED_API_KEY를 설정한 뒤 재실행하세요. "
+                "문서: https://fred.stlouisfed.org/docs/api/api_key.html"
+            )
+            logger.error(msg)
+            finish_job(
+                job_id,
+                status="failed",
+                records_upserted=0,
+                error_message=msg,
+                meta={"fred_key_configured": False},
+            )
+            return {
+                "job_id": job_id,
+                "upserted": 0,
+                "errors": [msg],
+                "status": "failed",
+                "fred_key_configured": False,
+            }
+
         indicators = indicators_for_provider("fred")
         if not indicators:
             finish_job(job_id, status="partial", records_upserted=0, meta={"warning": "no fred indicators"})
@@ -84,7 +107,7 @@ def collect_fred(
                 try:
                     obs = fetch_series_observations(
                         ind["source_id"],
-                        api_key=settings.fred_api_key,
+                        api_key=api_key,
                         observation_start=_observation_start(years),
                         client=client,
                     )

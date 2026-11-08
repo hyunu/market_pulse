@@ -68,15 +68,24 @@ export function PortfolioPage() {
       <PageHeader
         title="Portfolio"
         subtitle="거래 원장으로 평가·수익·배분·배당을 재구성합니다. 매매를 권유하지 않으며, 거시 노출은 Phase 3와 함께 설명합니다."
-        sourceMode={mode === 'api' ? 'api' : 'mock'}
+        sourceMode={mode === 'api' ? 'api' : 'demo'}
         extra={<span className="mp-source mb-1">{mode}</span>}
       />
+
+      <div className="mp-banner mp-banner-demo mb-[var(--space-5)]">
+        <p>
+          <strong>DEMO PORTFOLIO</strong>
+          <span className="mx-2 text-[var(--color-line-strong)]">·</span>
+          시세 연동 전 데모 원장입니다. 시장 페이지의 실종가와 혼동하지 마세요. 매매를 권유하지
+          않습니다.
+        </p>
+      </div>
 
       {loading || !data || !perf ? (
         <p className="text-sm text-[var(--color-muted)]">불러오는 중…</p>
       ) : (
         <>
-          <p className="mb-4 text-[12px] text-[var(--color-muted)]">
+          <p className="mb-[var(--space-4)] text-[12px] text-[var(--color-muted)]">
             {data.account.name}
             <span className="mx-1.5 text-[var(--color-line-strong)]">/</span>
             {currency}
@@ -103,13 +112,13 @@ export function PortfolioPage() {
             />
           </section>
 
-          <section className="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-12">
+          <section className="mt-[var(--space-6)] grid gap-[var(--space-6)] lg:grid-cols-2 lg:gap-[var(--space-7)]">
             <div>
               <h2 className="mp-section-title">Allocation vs target</h2>
-              <p className="mt-1 text-[12px] text-[var(--color-muted)]">
+              <p className="mp-section-lead">
                 실비중(스틸) · 목표 마커(앰버). 리밸런싱 권유 아님.
               </p>
-              <div className="mt-4 space-y-3.5">
+              <div className="mt-[var(--space-4)] space-y-[var(--space-3)]">
                 {data.allocation.map((a) => (
                   <div key={a.asset_class}>
                     <div className="mb-1 flex items-baseline justify-between gap-2 text-[11px]">
@@ -187,8 +196,8 @@ export function PortfolioPage() {
             </div>
           </section>
 
-          <section className="mt-10">
-            <div className="mb-3 flex items-baseline justify-between">
+          <section className="mt-[var(--space-6)]">
+            <div className="mb-[var(--space-3)] flex items-baseline justify-between">
               <h2 className="mp-section-title">Holdings</h2>
               <span className="text-[11px] text-[var(--color-muted)]">{data.holdings.length} positions</span>
             </div>
@@ -230,12 +239,10 @@ export function PortfolioPage() {
             </div>
           </section>
 
-          <section className="mt-10 border-t border-[var(--color-line)] pt-7">
+          <section className="mt-[var(--space-6)] border-t border-[var(--color-line)] pt-[var(--space-5)]">
             <h2 className="mp-section-title">Macro exposure</h2>
-            <p className="mt-1 text-[12px] text-[var(--color-muted)]">
-              Phase 3 score / regime과 보유 민감도
-            </p>
-            <div className="mp-metric-grid mt-4 grid-cols-3">
+            <p className="mp-section-lead">Phase 3 score / regime과 보유 민감도</p>
+            <div className="mp-metric-grid grid-cols-3">
               <div className="pt-3">
                 <p className="text-[10px] uppercase tracking-[0.12em] text-[var(--color-muted)]">
                   Market Score

@@ -33,7 +33,7 @@ export function GlobalMarketPage() {
               ))}
             </div>
           </section>
-          <section className="mt-12">
+          <section className="mt-[var(--space-6)]">
             <h2 className="mp-section-title">US · KR · CN</h2>
             <p className="mt-1 mb-4 text-sm text-[var(--color-muted)]">교차 시장 경로.</p>
             <TimeSeriesChart

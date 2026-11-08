@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 /*
-  MarketPulse — Steel Ledger v2
-  금융 터미널급 절제미 + 브랜드 존재감 (라이트)
+  MarketPulse — Steel Ledger v3
+  Spacing scale: 4 / 8 / 12 / 16 / 24 / 32 / 48
+  금융 터미널급 밀도 + 리듬 (라이트)
 */
 
 @theme {
@@ -24,6 +25,14 @@
   --color-up: #1f6b52;
   --color-down: #b03a3a;
   --color-warn: #c9842f;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-1: 380ms;
@@ -75,11 +84,10 @@ body {
   font-family: var(--font-display);
 }
 
-/* ——— Motions ——— */
 @keyframes mp-rise {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -91,7 +99,7 @@ body {
   from {
     opacity: 0;
     letter-spacing: 0.06em;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -148,7 +156,6 @@ body {
   animation: mp-draw-line 1.35s var(--ease-out) 0.2s both;
 }
 
-/* Quiet source — terminal footnote, not a badge */
 .mp-source {
   font-size: 9px;
   font-weight: 500;
@@ -164,6 +171,18 @@ body {
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--color-ink);
+  margin: 0;
+}
+
+.mp-section-lead {
+  margin: var(--space-2) 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-muted);
+}
+
+.mp-section {
+  margin-top: var(--space-6);
 }
 
 .mp-kicker {
@@ -174,16 +193,17 @@ body {
   color: var(--color-accent-ink);
 }
 
-/* Metric strip: shared border rhythm, not card tiles */
 .mp-metric-grid {
   display: grid;
   border-top: 1px solid var(--color-line);
   border-bottom: 1px solid var(--color-line);
+  margin-top: var(--space-3);
 }
 
 .mp-metric-grid > * {
   border-right: 1px solid var(--color-line);
-  padding: 0.85rem 1rem 0.95rem 0;
+  padding: var(--space-3) var(--space-4) var(--space-3) 0;
+  min-width: 0;
 }
 
 .mp-metric-grid > *:last-child {
@@ -196,7 +216,7 @@ body {
   }
   .mp-metric-grid > *:nth-child(even) {
     border-right: none;
-    padding-left: 1rem;
+    padding-left: var(--space-4);
   }
   .mp-metric-grid > *:nth-child(n + 3) {
     border-top: 1px solid var(--color-line);
@@ -205,6 +225,25 @@ body {
 
 .mp-shell {
   max-width: 72rem;
+}
+
+.mp-banner {
+  border: 1px solid var(--color-line-strong);
+  background: color-mix(in srgb, var(--color-panel) 70%, transparent);
+  padding: var(--space-3) var(--space-4);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-ink-soft);
+}
+
+.mp-banner strong {
+  font-weight: 650;
+  color: var(--color-accent-ink);
+}
+
+.mp-banner-demo {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-panel));
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -38,10 +38,28 @@ def _signal(indicator_ids: list[str], *, invert: dict[str, float] | None = None)
                 "as_of": bundle.as_of.isoformat() if bundle.as_of else None,
             }
         )
-    level = sum(zs) / len(zs) if zs else 0.0
+    if not zs:
+        mode = "unavailable"
+        if modes and all(m == "synthetic" for m in modes):
+            mode = "synthetic"
+        elif any(m == "api" for m in modes):
+            mode = "mixed"
+        return {
+            "level": None,
+            "score": None,
+            "direction": None,
+            "components": parts,
+            "coverage": 0.0,
+            "source_mode": mode,
+            "as_of": max(as_ofs).isoformat() if as_ofs else None,
+            "status": "데이터 부족",
+        }
+    level = sum(zs) / len(zs)
     direction = "up" if level >= 0 else "down"
     source_mode = "api" if modes and all(m == "api" for m in modes) else (
-        "mixed" if any(m == "api" for m in modes) else "synthetic"
+        "mixed" if any(m == "api" for m in modes) else (
+            "synthetic" if any(m == "synthetic" for m in modes) else "unavailable"
+        )
     )
     return {
         "level": round(level, 3),
@@ -57,9 +75,10 @@ def _signal(indicator_ids: list[str], *, invert: dict[str, float] | None = None)
 def _history_path(months: int = 60) -> list[dict[str, Any]]:
     """월별 성장·물가 신호 궤적 (유사 국면 탐색용)."""
     series = {i: load_series(i) for i in set(REGIME_GROWTH_IDS + REGIME_INFLATION_IDS)}
-    # use month-end-ish last point of each month window by sampling every ~1 point if monthly synthetic
-    # Build aligned by taking last N overlapping indices
-    min_len = min(len(b.points) for b in series.values())
+    lengths = [len(b.points) for b in series.values() if b.points]
+    if not lengths or min(lengths) < 13:
+        return []
+    min_len = min(lengths)
     path: list[dict[str, Any]] = []
     step = max(1, min_len // months) if min_len > months else 1
     indices = list(range(12, min_len, step))[-months:]
@@ -108,6 +127,33 @@ def similar_regimes(current_g: float, current_i: float, path: list[dict[str, Any
 def compute_regime_payload() -> dict[str, Any]:
     growth = _signal(REGIME_GROWTH_IDS, invert={"us_unemployment": -1.0})
     inflation = _signal(REGIME_INFLATION_IDS)  # higher z = higher inflation pressure
+
+    if growth["direction"] is None or inflation["direction"] is None:
+        modes = {growth["source_mode"], inflation["source_mode"]}
+        source_mode = "api" if modes == {"api"} else (
+            "mixed" if "api" in modes else (
+                "synthetic" if "synthetic" in modes else "unavailable"
+            )
+        )
+        return {
+            "label": "데이터 부족",
+            "quadrant": {"growth": "n/a", "inflation": "n/a"},
+            "growth": growth,
+            "inflation": inflation,
+            "drivers": [],
+            "contrarians": [],
+            "similar_regimes": [],
+            "confidence": 0.0,
+            "source_mode": source_mode,
+            "status": "데이터 부족",
+            "as_of": max(filter(None, [growth["as_of"], inflation["as_of"]]), default=None),
+            "methodology": {
+                "axes": "growth z (unemployment inverted) × inflation z",
+                "labels": REGIME_LABELS,
+                "note": "실관측 부족 시 국면을 추정하지 않습니다",
+            },
+        }
+
     label = REGIME_LABELS[(growth["direction"], inflation["direction"])]
     path = _history_path()
     similar = similar_regimes(growth["level"], inflation["level"], path)
@@ -127,9 +173,12 @@ def compute_regime_payload() -> dict[str, Any]:
         contrarians.append({"axis": "inflation", **i_sorted[-1]})
 
     modes = {growth["source_mode"], inflation["source_mode"]}
-    source_mode = "api" if modes == {"api"} else ("mixed" if "api" in modes else "synthetic")
+    source_mode = "api" if modes == {"api"} else (
+        "mixed" if "api" in modes else (
+            "synthetic" if "synthetic" in modes else "unavailable"
+        )
+    )
     coverage = (growth["coverage"] + inflation["coverage"]) / 2
-    # freshness penalty
     confidence = coverage
     for as_of in filter(None, [growth["as_of"], inflation["as_of"]]):
         age = (date.today() - date.fromisoformat(as_of)).days
