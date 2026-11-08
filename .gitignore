@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+# Python/packaging dist only — keep Phase 1 frontend placeholder tracked
+/dist/
+backend/dist/
+!frontend/dist/
+!frontend/dist/**
+*.egg
+
+# Node
+node_modules/
+frontend/node_modules/
+*.log
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Local secrets / data
+*.pem
+*.key
+config/.env
+.env.local
+data/
+tmp/

@@ -1,0 +1,316 @@
+version: 1
+updated: "2026-11-08"
+# MarketPulse 초기 핵심 지표 30개
+# source_id 는 FRED 등 실제 공개 식별자. Yahoo 심볼은 프로토타입·라이선스 검토 필수.
+
+indicators:
+  # --- 시장 5 ---
+  - indicator_id: us_sp500
+    name: S&P 500
+    name_ko: S&P 500
+    category: market
+    frequency: D
+    unit: index
+    provider: fred
+    source_id: SP500
+    geography: US
+
+  - indicator_id: us_nasdaq
+    name: NASDAQ Composite
+    name_ko: 나스닥 종합
+    category: market
+    frequency: D
+    unit: index
+    provider: yahoo
+    source_id: "^IXIC"
+    geography: US
+    license_note: "Prototype only; review Yahoo ToS before production."
+
+  - indicator_id: kr_kospi
+    name: KOSPI
+    name_ko: 코스피
+    category: market
+    frequency: D
+    unit: index
+    provider: yahoo
+    source_id: "^KS11"
+    geography: KR
+    license_note: "Prototype only."
+
+  - indicator_id: cn_shanghai
+    name: Shanghai Composite
+    name_ko: 상하이 종합
+    category: market
+    frequency: D
+    unit: index
+    provider: yahoo
+    source_id: "000001.SS"
+    geography: CN
+    license_note: "Prototype only."
+
+  - indicator_id: us_vix
+    name: VIX
+    name_ko: VIX 변동성
+    category: market
+    frequency: D
+    unit: index
+    provider: fred
+    source_id: VIXCLS
+    geography: US
+
+  # --- 경기 5 ---
+  - indicator_id: us_gdp
+    name: Real GDP
+    name_ko: 실질 GDP
+    category: growth
+    frequency: Q
+    unit: bil_chained_2017_usd
+    provider: fred
+    source_id: GDPC1
+    geography: US
+
+  - indicator_id: us_indpro
+    name: Industrial Production
+    name_ko: 산업생산
+    category: growth
+    frequency: M
+    unit: index_2017=100
+    provider: fred
+    source_id: INDPRO
+    geography: US
+
+  - indicator_id: us_retail_sales
+    name: Retail Sales
+    name_ko: 소매판매
+    category: growth
+    frequency: M
+    unit: mil_usd
+    provider: fred
+    source_id: RSAFS
+    geography: US
+
+  - indicator_id: us_unemployment
+    name: Unemployment Rate
+    name_ko: 실업률
+    category: growth
+    frequency: M
+    unit: percent
+    provider: fred
+    source_id: UNRATE
+    geography: US
+
+  - indicator_id: us_nfp
+    name: Nonfarm Payrolls
+    name_ko: 비농업 고용
+    category: growth
+    frequency: M
+    unit: thousands
+    provider: fred
+    source_id: PAYEMS
+    geography: US
+
+  # --- 물가 4 ---
+  - indicator_id: us_cpi
+    name: CPI All Urban
+    name_ko: CPI
+    category: inflation
+    frequency: M
+    unit: index_1982_84=100
+    provider: fred
+    source_id: CPIAUCSL
+    geography: US
+
+  - indicator_id: us_core_cpi
+    name: Core CPI
+    name_ko: 근원 CPI
+    category: inflation
+    frequency: M
+    unit: index_1982_84=100
+    provider: fred
+    source_id: CPILFESL
+    geography: US
+
+  - indicator_id: us_pce
+    name: PCE Price Index
+    name_ko: PCE
+    category: inflation
+    frequency: M
+    unit: index_2017=100
+    provider: fred
+    source_id: PCEPI
+    geography: US
+
+  - indicator_id: us_core_pce
+    name: Core PCE
+    name_ko: 근원 PCE
+    category: inflation
+    frequency: M
+    unit: index_2017=100
+    provider: fred
+    source_id: PCEPILFE
+    geography: US
+
+  # --- 유동성 4 ---
+  - indicator_id: us_m2
+    name: M2 Money Stock
+    name_ko: M2
+    category: liquidity
+    frequency: M
+    unit: bil_usd
+    provider: fred
+    source_id: M2SL
+    geography: US
+
+  - indicator_id: us_fed_assets
+    name: Fed Total Assets
+    name_ko: 연준 총자산
+    category: liquidity
+    frequency: W
+    unit: mil_usd
+    provider: fred
+    source_id: WALCL
+    geography: US
+
+  - indicator_id: us_tga
+    name: Treasury General Account
+    name_ko: TGA
+    category: liquidity
+    frequency: W
+    unit: mil_usd
+    provider: fred
+    source_id: WTREGEN
+    geography: US
+
+  - indicator_id: us_on_rrp
+    name: Overnight Reverse Repo
+    name_ko: ON RRP
+    category: liquidity
+    frequency: D
+    unit: bil_usd
+    provider: fred
+    source_id: RRPONTSYD
+    geography: US
+
+  # --- 금리 5 ---
+  - indicator_id: us_fed_funds
+    name: Federal Funds Effective Rate
+    name_ko: 연방기금금리
+    category: rates
+    frequency: D
+    unit: percent
+    provider: fred
+    source_id: DFF
+    geography: US
+
+  - indicator_id: us_treasury_2y
+    name: 2-Year Treasury Yield
+    name_ko: 국채 2년
+    category: rates
+    frequency: D
+    unit: percent
+    provider: fred
+    source_id: DGS2
+    geography: US
+
+  - indicator_id: us_treasury_10y
+    name: 10-Year Treasury Yield
+    name_ko: 국채 10년
+    category: rates
+    frequency: D
+    unit: percent
+    provider: fred
+    source_id: DGS10
+    geography: US
+
+  - indicator_id: us_treasury_30y
+    name: 30-Year Treasury Yield
+    name_ko: 국채 30년
+    category: rates
+    frequency: D
+    unit: percent
+    provider: fred
+    source_id: DGS30
+    geography: US
+
+  - indicator_id: us_hy_spread
+    name: ICE BofA US High Yield OAS
+    name_ko: HY 스프레드
+    category: rates
+    frequency: D
+    unit: percent
+    provider: fred
+    source_id: BAMLH0A0HYM2
+    geography: US
+
+  # --- 위험 3 ---
+  - indicator_id: us_move
+    name: MOVE Index
+    name_ko: MOVE
+    category: risk
+    frequency: D
+    unit: index
+    provider: fred
+    source_id: MOVE
+    geography: US
+
+  - indicator_id: us_stress
+    name: St. Louis Financial Stress Index
+    name_ko: 금융스트레스
+    category: risk
+    frequency: W
+    unit: index
+    provider: fred
+    source_id: STLFSI4
+    geography: US
+
+  - indicator_id: us_nfci
+    name: Chicago Fed NFCI
+    name_ko: NFCI
+    category: risk
+    frequency: W
+    unit: index
+    provider: fred
+    source_id: NFCI
+    geography: US
+
+  # --- 글로벌 4 ---
+  - indicator_id: fx_usdkurw
+    name: USD/KRW
+    name_ko: 원달러
+    category: global
+    frequency: D
+    unit: krw_per_usd
+    provider: fred
+    source_id: DEXKOUS
+    geography: GLOBAL
+
+  - indicator_id: fx_usdcny
+    name: USD/CNY
+    name_ko: 위안달러
+    category: global
+    frequency: D
+    unit: cny_per_usd
+    provider: fred
+    source_id: DEXCHUS
+    geography: GLOBAL
+
+  - indicator_id: commodity_copper
+    name: Global Copper Price
+    name_ko: 구리
+    category: global
+    frequency: M
+    unit: usd_per_metric_ton
+    provider: fred
+    source_id: PCOPPUSDM
+    geography: GLOBAL
+
+  - indicator_id: crypto_btc
+    name: Bitcoin USD
+    name_ko: 비트코인
+    category: global
+    frequency: D
+    unit: usd
+    provider: yahoo
+    source_id: "BTC-USD"
+    geography: GLOBAL
+    license_note: "Prototype only; review Yahoo ToS before production."

@@ -1,0 +1,71 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: marketpulse
+      POSTGRES_PASSWORD: marketpulse
+      POSTGRES_DB: marketpulse
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketpulse -d marketpulse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://marketpulse:marketpulse@db:5432/marketpulse
+      FRED_API_KEY: ${FRED_API_KEY:-}
+      BLS_API_KEY: ${BLS_API_KEY:-}
+      BEA_API_KEY: ${BEA_API_KEY:-}
+      INDICATORS_YAML: /app/config/indicators.yaml
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./config:/app/config:ro
+      - ./collectors:/app/collectors:ro
+      - ./backend/app:/app/backend/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: scheduler/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://marketpulse:marketpulse@db:5432/marketpulse
+      FRED_API_KEY: ${FRED_API_KEY:-}
+      BLS_API_KEY: ${BLS_API_KEY:-}
+      BEA_API_KEY: ${BEA_API_KEY:-}
+      INDICATORS_YAML: /app/config/indicators.yaml
+      RUN_SCHEDULER: "true"
+    volumes:
+      - ./config:/app/config:ro
+      - ./collectors:/app/collectors:ro
+      - ./scheduler:/app/scheduler
+      - ./backend/app:/app/backend/app
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
