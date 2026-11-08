@@ -1,18 +1,33 @@
 @import "tailwindcss";
 
+/*
+  MarketPulse — Steel Ledger v2
+  금융 터미널급 절제미 + 브랜드 존재감 (라이트)
+*/
+
 @theme {
-  --font-sans: "Manrope", "Noto Sans KR", sans-serif;
-  --font-display: "Source Serif 4", "Noto Serif KR", Georgia, serif;
-  --color-ink: #e8f1f4;
-  --color-muted: #8aa0ab;
-  --color-panel: #122833;
-  --color-panel-2: #0e212c;
-  --color-line: #1e3a47;
-  --color-accent: #3ddc97;
-  --color-warn: #f4c95f;
-  --color-down: #ff6b6b;
-  --color-up: #3ddc97;
-  --color-canvas: #07141c;
+  --font-sans: "Figtree", "Noto Sans KR", sans-serif;
+  --font-display: "Bricolage Grotesque", "Noto Sans KR", sans-serif;
+
+  --color-ink: #0b1c2c;
+  --color-ink-soft: #1a3144;
+  --color-muted: #5a7182;
+  --color-line: #c9d4de;
+  --color-line-strong: #a8b8c6;
+  --color-panel: #f7f9fb;
+  --color-panel-2: #eef2f6;
+  --color-canvas: #dfe6ee;
+  --color-accent: #c9842f;
+  --color-accent-ink: #8a5a16;
+  --color-steel: #3d5a73;
+  --color-steel-soft: #6b8599;
+  --color-up: #1f6b52;
+  --color-down: #b03a3a;
+  --color-warn: #c9842f;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-1: 380ms;
+  --dur-2: 620ms;
 }
 
 html,
@@ -25,10 +40,26 @@ body {
   margin: 0;
   font-family: var(--font-sans);
   color: var(--color-ink);
-  background:
-    radial-gradient(900px 480px at 8% -10%, rgba(61, 220, 151, 0.12), transparent 55%),
-    radial-gradient(800px 420px at 100% 0%, rgba(56, 148, 180, 0.16), transparent 50%),
-    linear-gradient(180deg, #0a1a24 0%, var(--color-canvas) 45%, #061018 100%);
+  background-color: #d8e0e9;
+  background-image:
+    radial-gradient(1100px 640px at 8% -12%, rgba(61, 90, 115, 0.22), transparent 55%),
+    radial-gradient(900px 520px at 100% 0%, rgba(201, 132, 47, 0.16), transparent 48%),
+    radial-gradient(700px 400px at 50% 100%, rgba(31, 107, 82, 0.06), transparent 55%),
+    linear-gradient(165deg, #eef3f7 0%, #e2e9f1 38%, #d5dee8 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 39px,
+      rgba(11, 28, 44, 0.055) 39px,
+      rgba(11, 28, 44, 0.055) 40px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 39px,
+      rgba(11, 28, 44, 0.045) 39px,
+      rgba(11, 28, 44, 0.045) 40px
+    );
   background-attachment: fixed;
 }
 
@@ -37,5 +68,150 @@ body {
 }
 
 ::selection {
-  background: rgba(61, 220, 151, 0.3);
+  background: rgba(201, 132, 47, 0.28);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ——— Motions ——— */
+@keyframes mp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mp-brand-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.06em;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    letter-spacing: -0.035em;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mp-draw-line {
+  from {
+    stroke-dashoffset: 280;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes mp-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mp-rise {
+  animation: mp-rise var(--dur-2) var(--ease-out) both;
+}
+
+.mp-brand {
+  animation: mp-brand-in 820ms var(--ease-out) both;
+}
+
+.mp-fade {
+  animation: mp-fade var(--dur-1) var(--ease-out) both;
+}
+
+.mp-delay-1 {
+  animation-delay: 60ms;
+}
+.mp-delay-2 {
+  animation-delay: 120ms;
+}
+.mp-delay-3 {
+  animation-delay: 180ms;
+}
+.mp-delay-4 {
+  animation-delay: 240ms;
+}
+
+.mp-pulse-line {
+  stroke-dasharray: 280;
+  animation: mp-draw-line 1.35s var(--ease-out) 0.2s both;
+}
+
+/* Quiet source — terminal footnote, not a badge */
+.mp-source {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--color-steel-soft);
+  opacity: 0.55;
+}
+
+.mp-section-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.mp-kicker {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-ink);
+}
+
+/* Metric strip: shared border rhythm, not card tiles */
+.mp-metric-grid {
+  display: grid;
+  border-top: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.mp-metric-grid > * {
+  border-right: 1px solid var(--color-line);
+  padding: 0.85rem 1rem 0.95rem 0;
+}
+
+.mp-metric-grid > *:last-child {
+  border-right: none;
+}
+
+@media (max-width: 639px) {
+  .mp-metric-grid > *:nth-child(odd) {
+    border-right: 1px solid var(--color-line);
+  }
+  .mp-metric-grid > *:nth-child(even) {
+    border-right: none;
+    padding-left: 1rem;
+  }
+  .mp-metric-grid > *:nth-child(n + 3) {
+    border-top: 1px solid var(--color-line);
+  }
+}
+
+.mp-shell {
+  max-width: 72rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-rise,
+  .mp-brand,
+  .mp-fade,
+  .mp-pulse-line {
+    animation: none !important;
+  }
 }

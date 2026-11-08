@@ -8,13 +8,15 @@ type Props = {
 export function SourceFooter({ series }: Props) {
   if (!series.length) return null
   return (
-    <footer className="mt-6 rounded-lg border border-[var(--color-line)] bg-[var(--color-panel-2)]/80 px-4 py-3 text-xs text-[var(--color-muted)]">
-      <p className="font-semibold text-[var(--color-ink)]">출처 · 기준일</p>
-      <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+    <footer className="mp-fade mt-8 border-t border-[var(--color-line)] pt-3 text-[10px] leading-relaxed text-[var(--color-muted)] md:mt-10">
+      <p className="font-semibold uppercase tracking-[0.12em] text-[var(--color-ink-soft)]">
+        Sources
+      </p>
+      <ul className="mt-1.5 columns-1 gap-x-8 sm:columns-2">
         {series.map((s) => (
-          <li key={s.indicator.indicator_id}>
+          <li key={s.indicator.indicator_id} className="break-inside-avoid py-0.5">
             {s.indicator.name_ko || s.indicator.name}: {s.indicator.provider}/
-            {s.indicator.source_id} · as-of {formatDate(s.asOf)} · {s.sourceMode}
+            {s.indicator.source_id} · {formatDate(s.asOf)}
           </li>
         ))}
       </ul>

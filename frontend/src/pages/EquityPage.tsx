@@ -1,12 +1,11 @@
-import { PageHeader } from '../components/PageHeader'
-import { useIndicatorSeries } from '../hooks/useIndicatorSeries'
-import { IndicatorCard } from '../components/IndicatorCard'
-import { TimeSeriesChart } from '../components/TimeSeriesChart'
-import { SourceFooter } from '../components/SourceFooter'
 import { useState } from 'react'
+import { IndicatorCard } from '../components/IndicatorCard'
+import { PageHeader } from '../components/PageHeader'
+import { SourceFooter } from '../components/SourceFooter'
+import { TimeSeriesChart } from '../components/TimeSeriesChart'
+import { useIndicatorSeries } from '../hooks/useIndicatorSeries'
 import type { PeriodKey } from '../api/types'
 
-/** Phase 2: 시장 프록시. EPS/PER/CAPE 본데이터는 Phase 3 */
 const IDS = ['us_sp500', 'us_nasdaq']
 
 export function EquityPage() {
@@ -17,7 +16,7 @@ export function EquityPage() {
     <div>
       <PageHeader
         title="Equity & Valuation"
-        subtitle="지수 수준을 우선 표시합니다. Forward EPS, CAPE, PBR, ERP 등 밸류에이션 지표는 Analytics(Phase 3)에서 연동합니다."
+        subtitle="지수 수준을 우선 표시합니다. CAPE·Forward PER·ERP는 펀더멘털 시리즈 연동 후 확장합니다."
         period={period}
         onPeriodChange={setPeriod}
         sourceMode={sourceMode}
@@ -26,17 +25,20 @@ export function EquityPage() {
         <p className="text-sm text-[var(--color-muted)]">불러오는 중…</p>
       ) : (
         <>
-          <section className="grid gap-3 sm:grid-cols-2">
-            {series.map((s) => (
-              <IndicatorCard key={s.indicator.indicator_id} data={s} />
-            ))}
+          <section>
+            <h2 className="mp-section-title">Equity proxies</h2>
+            <div className="mp-metric-grid mt-3 grid-cols-2">
+              {series.map((s, i) => (
+                <IndicatorCard key={s.indicator.indicator_id} data={s} index={i} flush />
+              ))}
+            </div>
+            <div className="mt-8">
+              <TimeSeriesChart series={series} height={340} />
+            </div>
           </section>
-          <section className="mt-6">
-            <TimeSeriesChart series={series} title="Equity proxies" height={360} />
-          </section>
-          <div className="mt-4 rounded-xl border border-dashed border-[var(--color-line)] p-4 text-sm text-[var(--color-muted)]">
-            Coming in Phase 3: Forward PER · CAPE · Earnings growth · ERP drill-down
-          </div>
+          <p className="mt-8 border-t border-[var(--color-line)] pt-4 text-sm text-[var(--color-muted)]">
+            Next: Forward PER · CAPE · earnings growth · ERP drill-down
+          </p>
           <SourceFooter series={series} />
         </>
       )}

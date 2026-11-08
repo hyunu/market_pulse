@@ -2,6 +2,7 @@ import ReactECharts from 'echarts-for-react'
 import { useMemo } from 'react'
 import type { IndicatorSeries } from '../api/types'
 import { labelOf } from '../lib/format'
+import { CHART } from '../theme/chartTheme'
 
 type Props = {
   series: IndicatorSeries[]
@@ -9,9 +10,7 @@ type Props = {
   title?: string
 }
 
-const PALETTE = ['#3ddc97', '#5ec8ff', '#f4c95f', '#ff8fab', '#9b8cff', '#7dd3c7']
-
-export function TimeSeriesChart({ series, height = 360, title }: Props) {
+export function TimeSeriesChart({ series, height = 320, title }: Props) {
   const hasData = series.some((s) => s.points.length > 0)
 
   const option = useMemo(() => {
@@ -25,44 +24,64 @@ export function TimeSeriesChart({ series, height = 360, title }: Props) {
             text: title,
             left: 0,
             top: 0,
-            textStyle: { color: '#e8f1f4', fontSize: 14, fontWeight: 600 },
+            textStyle: {
+              color: CHART.ink,
+              fontSize: 12,
+              fontWeight: 600,
+              fontFamily: 'Figtree, sans-serif',
+            },
           }
         : undefined,
       tooltip: {
         trigger: 'axis',
-        backgroundColor: '#122833',
-        borderColor: '#1e3a47',
-        textStyle: { color: '#e8f1f4' },
+        backgroundColor: CHART.tooltipBg,
+        borderColor: CHART.tooltipBorder,
+        borderWidth: 1,
+        textStyle: { color: CHART.ink, fontSize: 12, fontFamily: 'Figtree, sans-serif' },
       },
       legend: {
-        top: title ? 28 : 0,
-        textStyle: { color: '#8aa0ab' },
+        top: title ? 22 : 0,
+        itemWidth: 10,
+        itemHeight: 2,
+        textStyle: { color: CHART.muted, fontSize: 11, fontFamily: 'Figtree, sans-serif' },
       },
-      grid: { left: 48, right: 24, top: title ? 64 : 40, bottom: 40 },
+      grid: {
+        left: 44,
+        right: 8,
+        top: title ? 52 : 32,
+        bottom: 28,
+      },
       xAxis: {
         type: 'category',
         boundaryGap: false,
         data: dates,
-        axisLine: { lineStyle: { color: '#1e3a47' } },
-        axisLabel: { color: '#8aa0ab', hideOverlap: true },
+        axisLine: { lineStyle: { color: CHART.lineStrong, width: 1 } },
+        axisTick: { show: false },
+        axisLabel: { color: CHART.muted, fontSize: 10, hideOverlap: true },
       },
       yAxis: {
         type: 'value',
         scale: true,
-        splitLine: { lineStyle: { color: '#1e3a47', type: 'dashed' } },
-        axisLabel: { color: '#8aa0ab' },
+        splitNumber: 4,
+        splitLine: {
+          lineStyle: { color: CHART.line, type: 'solid', width: 1, opacity: 0.9 },
+        },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { color: CHART.muted, fontSize: 10 },
       },
       series: series.map((s, idx) => {
         const map = new Map(s.points.map((p) => [p.date, p.value]))
+        const color = CHART.palette[idx % CHART.palette.length]
         return {
           name: labelOf(s.indicator.name_ko, s.indicator.name),
           type: 'line',
           showSymbol: false,
-          smooth: 0.15,
+          smooth: 0.1,
           connectNulls: true,
           data: dates.map((d) => map.get(d) ?? null),
-          lineStyle: { width: 2, color: PALETTE[idx % PALETTE.length] },
-          itemStyle: { color: PALETTE[idx % PALETTE.length] },
+          lineStyle: { width: 1.8, color },
+          itemStyle: { color },
           areaStyle:
             series.length === 1
               ? {
@@ -73,8 +92,8 @@ export function TimeSeriesChart({ series, height = 360, title }: Props) {
                     x2: 0,
                     y2: 1,
                     colorStops: [
-                      { offset: 0, color: 'rgba(61,220,151,0.28)' },
-                      { offset: 1, color: 'rgba(61,220,151,0)' },
+                      { offset: 0, color: CHART.areaTop },
+                      { offset: 1, color: CHART.areaBottom },
                     ],
                   },
                 }
@@ -87,7 +106,7 @@ export function TimeSeriesChart({ series, height = 360, title }: Props) {
   if (!hasData) {
     return (
       <div
-        className="flex items-center justify-center rounded-xl border border-dashed border-[var(--color-line)] text-sm text-[var(--color-muted)]"
+        className="flex items-center justify-center border border-dashed border-[var(--color-line)] text-sm text-[var(--color-muted)]"
         style={{ height }}
       >
         표시할 시계열이 없습니다
@@ -96,7 +115,7 @@ export function TimeSeriesChart({ series, height = 360, title }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-[var(--color-line)] bg-[var(--color-panel)]/70 p-3">
+    <div className="mp-rise border-t border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_55%,transparent)] pt-2">
       <ReactECharts option={option} style={{ height }} notMerge lazyUpdate />
     </div>
   )

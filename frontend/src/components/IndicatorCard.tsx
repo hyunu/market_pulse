@@ -4,40 +4,56 @@ import type { IndicatorSeries } from '../api/types'
 type Props = {
   data: IndicatorSeries
   compact?: boolean
+  index?: number
+  /** When true, omit own top border (parent grid provides rhythm) */
+  flush?: boolean
 }
 
-export function IndicatorCard({ data, compact }: Props) {
+function shortMode(mode: string): string {
+  if (mode === 'api') return 'api'
+  if (mode === 'synthetic') return 'syn'
+  if (mode === 'mock') return 'smp'
+  if (mode === 'demo') return 'demo'
+  if (mode === 'mixed') return 'mix'
+  return mode.slice(0, 3)
+}
+
+export function IndicatorCard({ data, compact, index = 0, flush }: Props) {
   const last = data.points.at(-1)?.value ?? null
   const up = (data.changePct ?? 0) >= 0
+  const delay = `mp-delay-${Math.min(index + 1, 4)}`
+  const digits = last != null && Math.abs(last) < 20 ? 2 : last != null && Math.abs(last) >= 1000 ? 0 : 1
+
   return (
-    <article className="rounded-xl border border-[var(--color-line)] bg-[var(--color-panel)]/80 p-4 backdrop-blur">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-semibold text-[var(--color-ink)]">
-            {labelOf(data.indicator.name_ko, data.indicator.name)}
-          </h3>
-          <p className="mt-0.5 text-[11px] text-[var(--color-muted)]">
-            {data.indicator.provider.toUpperCase()} · {data.indicator.source_id}
-          </p>
-        </div>
+    <article
+      className={`mp-rise ${delay} ${flush ? '' : 'border-t border-[var(--color-line)] pt-3'} ${
+        compact ? 'pb-1' : 'pb-2'
+      }`}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 className="text-[12px] font-medium leading-tight text-[var(--color-ink-soft)]">
+          {labelOf(data.indicator.name_ko, data.indicator.name)}
+        </h3>
+        <span className="mp-source">{shortMode(data.sourceMode)}</span>
+      </div>
+      <p
+        className={`mt-1.5 font-display font-semibold tabular-nums tracking-[-0.03em] text-[var(--color-ink)] ${
+          compact ? 'text-[1.35rem]' : 'text-[1.55rem] md:text-[1.7rem]'
+        }`}
+      >
+        {formatNumber(last, digits)}
+      </p>
+      <div className="mt-0.5 flex items-baseline justify-between gap-2 text-[11px]">
         <span
-          className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
-            data.sourceMode === 'api'
-              ? 'bg-emerald-500/15 text-emerald-300'
-              : 'bg-amber-500/15 text-amber-200'
+          className={`font-semibold tabular-nums ${
+            up ? 'text-[var(--color-up)]' : 'text-[var(--color-down)]'
           }`}
         >
-          {data.sourceMode}
-        </span>
-      </div>
-      <p className={`mt-3 font-display text-2xl font-semibold tabular-nums ${compact ? 'text-xl' : ''}`}>
-        {formatNumber(last, last != null && Math.abs(last) < 20 ? 2 : 1)}
-      </p>
-      <div className="mt-1 flex items-center justify-between text-xs">
-        <span className={up ? 'text-[var(--color-up)]' : 'text-[var(--color-down)]'}>
           {formatPct(data.changePct)}
         </span>
-        <span className="text-[var(--color-muted)]">기준일 {formatDate(data.asOf)}</span>
+        <span className="tabular-nums text-[var(--color-muted)] opacity-80">
+          {formatDate(data.asOf)}
+        </span>
       </div>
     </article>
   )
