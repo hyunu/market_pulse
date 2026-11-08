@@ -2,7 +2,7 @@
 
 글로벌 거시경제 분석과 개인 투자자산 관리를 통합한 **일일 금융 모니터링** 플랫폼입니다.
 
-현재 저장소는 **Phase 1 데이터 기반 + Phase 2 시장 현황판**까지 포함합니다.
+현재 저장소는 **Phase 1 데이터 기반 + Phase 2 시장 현황판 + Phase 3 분석 엔진**까지 포함합니다.
 
 ## 구성
 
@@ -118,11 +118,24 @@ pytest -q
 | `MARKET_COLLECTOR_LIVE` | Yahoo 실호출 |
 | `VITE_API_BASE_URL` | 프론트 API base (비우면 동일 오리진) |
 
+## Phase 3 분석 API
+
+| Method | Path | 설명 |
+| --- | --- | --- |
+| GET | `/api/v1/scores` | 영역 점수 + 가중 Market Score |
+| GET | `/api/v1/scores/{domain}` | 단일 영역 드릴다운 |
+| GET | `/api/v1/regime` | 성장×물가 국면 + 유사 국면 |
+| GET | `/api/v1/correlation` | 수익률 상관행렬 (`?ids=a,b`) |
+| POST | `/api/v1/analytics/derived/run` | MoM/YoY 파생 적재 |
+
+DB 관측이 부족하면 엔진이 **결정적 synthetic** 시계열로 계산하고 `source_mode`에 표시합니다.  
+Dashboard는 실 API를 우선 호출하고, 실패 시 프론트 목 폴백(+배지)을 사용합니다.
+
 ## Phase 로드맵
 
 1. Phase 1 데이터 기반
-2. **Phase 2 시장 현황판** ← 포함
-3. Phase 3 Analytics / Regime / Scores
+2. Phase 2 시장 현황판
+3. **Phase 3 Analytics / Regime / Scores** ← 포함
 4. Phase 4 개인 포트폴리오
 
 ## 라이선스·고지
