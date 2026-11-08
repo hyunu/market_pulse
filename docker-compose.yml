@@ -59,11 +59,13 @@ services:
         condition: service_started
 
   frontend:
-    image: nginx:alpine
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ""
     ports:
       - "3000:80"
-    volumes:
-      - ./frontend/dist:/usr/share/nginx/html:ro
     depends_on:
       - api
 
