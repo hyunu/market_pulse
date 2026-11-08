@@ -16,7 +16,7 @@ export function GlobalMarketPage() {
     <div>
       <PageHeader
         title="Global Market"
-        subtitle="미국·한국·중국 중심 지수와 원달러. 등락은 선택 기간 대비 변화율입니다."
+        subtitle="미국·한국·중국 지수와 원달러. 등락은 선택 기간 대비 변화율입니다."
         period={period}
         onPeriodChange={setPeriod}
         sourceMode={sourceMode}
@@ -25,23 +25,24 @@ export function GlobalMarketPage() {
         <p className="text-sm text-[var(--color-muted)]">불러오는 중…</p>
       ) : (
         <>
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {series.map((s) => (
-              <IndicatorCard key={s.indicator.indicator_id} data={s} />
-            ))}
+          <section>
+            <h2 className="mp-section-title">Benchmarks</h2>
+            <div className="mt-4 grid gap-x-8 sm:grid-cols-2 xl:grid-cols-3">
+              {series.map((s, i) => (
+                <IndicatorCard key={s.indicator.indicator_id} data={s} index={i} />
+              ))}
+            </div>
           </section>
-          <section className="mt-6">
+          <section className="mt-12">
+            <h2 className="mp-section-title">US · KR · CN</h2>
+            <p className="mt-1 mb-4 text-sm text-[var(--color-muted)]">교차 시장 경로.</p>
             <TimeSeriesChart
               series={series.filter((s) =>
                 ['us_sp500', 'kr_kospi', 'cn_shanghai'].includes(s.indicator.indicator_id),
               )}
-              title="US / KR / CN 지수"
               height={400}
             />
           </section>
-          <p className="mt-3 text-xs text-[var(--color-muted)]">
-            섹터·시장폭은 데이터 소스 확보 후 확장 예정입니다.
-          </p>
           <SourceFooter series={series} />
         </>
       )}
