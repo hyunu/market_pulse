@@ -5,6 +5,7 @@ import type {
   Indicator,
   Observation,
   PeriodKey,
+  PortfolioOverview,
   RegimePayload,
   ScoresPayload,
 } from './types'
@@ -146,6 +147,99 @@ export async function getRegime(): Promise<{ data: RegimePayload; sourceMode: 'a
     return { data, sourceMode: 'api' }
   } catch {
     return { data: MOCK_REGIME, sourceMode: 'mock' }
+  }
+}
+
+export async function getPortfolioOverview(
+  accountId = 'demo-main',
+): Promise<{ data: PortfolioOverview; sourceMode: 'api' | 'mock' }> {
+  try {
+    const data = await fetchJson<PortfolioOverview>(
+      `/api/v1/portfolio/${encodeURIComponent(accountId)}/overview`,
+    )
+    return { data, sourceMode: 'api' }
+  } catch {
+    return {
+      data: {
+        account: {
+          account_id: 'demo-main',
+          name: '데모 종합계좌',
+          base_currency: 'KRW',
+          is_demo: true,
+        },
+        performance: {
+          as_of: new Date().toISOString().slice(0, 10),
+          total_value: 45000000,
+          net_invested: 38000000,
+          simple_return: 0.184,
+          annualized_return: 0.055,
+          xirr: 0.061,
+          mdd: -0.18,
+          years: 3.5,
+        },
+        holdings: [
+          {
+            symbol: 'SPY',
+            asset_class: 'etf',
+            quantity: 30,
+            avg_cost: 580000,
+            mark_price: 560,
+            fx_rate: 1380,
+            market_value: 23184000,
+            cost_basis: 17400000,
+            unrealized_pnl: 5784000,
+            weight: 0.45,
+          },
+          {
+            symbol: '005930.KS',
+            asset_class: 'equity',
+            quantity: 70,
+            avg_cost: 67000,
+            mark_price: 78000,
+            fx_rate: 1,
+            market_value: 5460000,
+            cost_basis: 4690000,
+            unrealized_pnl: 770000,
+            weight: 0.12,
+          },
+          {
+            symbol: 'CASH',
+            asset_class: 'cash',
+            quantity: 5000000,
+            avg_cost: 1,
+            mark_price: 1,
+            fx_rate: 1,
+            market_value: 5000000,
+            cost_basis: 5000000,
+            unrealized_pnl: 0,
+            weight: 0.11,
+          },
+        ],
+        allocation: [
+          { asset_class: 'etf', actual_weight: 0.45, target_weight: 0.05, drift: 0.4, market_value: 23184000 },
+          { asset_class: 'equity', actual_weight: 0.12, target_weight: 0.55, drift: -0.43, market_value: 5460000 },
+          { asset_class: 'cash', actual_weight: 0.11, target_weight: 0.1, drift: 0.01, market_value: 5000000 },
+        ],
+        dividends: {
+          gross_base: 450000,
+          tax_base: 70000,
+          net_base: 380000,
+          by_symbol: { SPY: 250000, '005930.KS': 130000 },
+          count: 5,
+        },
+        targets: [],
+        macro_exposure: [
+          {
+            symbol: 'SPY',
+            themes: ['US growth'],
+            note: '목 폴백 — API 연결 시 Phase 3 국면과 함께 표시',
+          },
+        ],
+        source_mode: 'mock',
+        disclaimer: '목 데이터이며 매매를 권유하지 않습니다.',
+      },
+      sourceMode: 'mock',
+    }
   }
 }
 

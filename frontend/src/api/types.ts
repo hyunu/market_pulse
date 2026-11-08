@@ -93,3 +93,56 @@ export type CorrelationPayload = {
   method: string
   analyzed_at?: string | null
 }
+
+export type PortfolioHolding = {
+  symbol: string
+  asset_class: string
+  quantity: number
+  avg_cost: number
+  mark_price: number
+  fx_rate: number
+  market_value: number
+  cost_basis: number
+  unrealized_pnl: number
+  weight: number
+}
+
+export type PortfolioOverview = {
+  account: {
+    account_id: string
+    name: string
+    base_currency: string
+    description?: string
+    is_demo?: boolean
+  }
+  performance: {
+    as_of: string
+    total_value: number
+    net_invested: number
+    simple_return: number | null
+    annualized_return: number | null
+    xirr: number | null
+    mdd: number | null
+    years: number
+  }
+  holdings: PortfolioHolding[]
+  allocation: Array<{
+    asset_class: string
+    actual_weight: number
+    target_weight: number
+    drift: number
+    market_value: number
+  }>
+  dividends: {
+    gross_base: number
+    tax_base: number
+    net_base: number
+    by_symbol: Record<string, number>
+    count: number
+  }
+  targets: Array<{ asset_class: string; target_weight: number }>
+  macro_exposure?: Array<{ symbol: string; themes: string[]; note: string }>
+  source_mode: string
+  disclaimer?: string
+  as_of?: string
+}
