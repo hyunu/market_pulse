@@ -16,6 +16,16 @@ from backend.app.analytics import (
     compute_regime,
 )
 from backend.app.analytics.config import DOMAIN_WEIGHTS
+from backend.app.portfolio import (
+    create_transaction,
+    ensure_demo_seeded,
+    get_account_summary,
+    list_accounts,
+    list_dividends,
+    list_transactions,
+    portfolio_overview,
+)
+from backend.app.portfolio.service import persist_snapshot
 from backend.app.schemas import (
     CorrelationResponse,
     HealthResponse,
@@ -26,6 +36,7 @@ from backend.app.schemas import (
     RunJobRequest,
     RunJobResponse,
     ScoresResponse,
+    TransactionCreate,
 )
 from backend.app.settings import get_settings
 
@@ -42,13 +53,18 @@ async def lifespan(_app: FastAPI):
             logger.info("Synced %s indicators from YAML", n)
         except Exception:  # noqa: BLE001
             logger.exception("Indicator YAML sync skipped/failed")
+        try:
+            seeded = ensure_demo_seeded()
+            logger.info("Portfolio demo seed: %s", seeded)
+        except Exception:  # noqa: BLE001
+            logger.exception("Portfolio demo seed skipped/failed")
     yield
 
 
 app = FastAPI(
     title="MarketPulse API",
     version=__version__,
-    description="Phase 1–3: indicators, collection jobs, regime & domain scores",
+    description="Phase 1–4: indicators, analytics, personal portfolio",
     lifespan=lifespan,
 )
 
@@ -240,3 +256,46 @@ def get_correlation(
 def run_derived() -> RunJobResponse:
     """MoM/YoY 등 최소 파생 관측을 derived_observations에 적재."""
     return RunJobResponse(result=compute_derived_batch())
+
+
+# ---- Phase 4 portfolio ----
+
+
+@app.get("/api/v1/portfolio/accounts")
+def portfolio_accounts() -> dict[str, Any]:
+    return list_accounts()
+
+
+@app.post("/api/v1/portfolio/demo/seed")
+def portfolio_demo_seed() -> dict[str, Any]:
+    return ensure_demo_seeded()
+
+
+@app.get("/api/v1/portfolio/{account_id}/overview")
+def portfolio_account_overview(account_id: str) -> dict[str, Any]:
+    return portfolio_overview(account_id)
+
+
+@app.get("/api/v1/portfolio/{account_id}/summary")
+def portfolio_account_summary(account_id: str) -> dict[str, Any]:
+    return get_account_summary(account_id)
+
+
+@app.get("/api/v1/portfolio/{account_id}/transactions")
+def portfolio_account_transactions(account_id: str) -> dict[str, Any]:
+    return list_transactions(account_id)
+
+
+@app.post("/api/v1/portfolio/{account_id}/transactions")
+def portfolio_create_tx(account_id: str, body: TransactionCreate) -> dict[str, Any]:
+    return create_transaction(account_id, body.model_dump())
+
+
+@app.get("/api/v1/portfolio/{account_id}/dividends")
+def portfolio_account_dividends(account_id: str) -> dict[str, Any]:
+    return list_dividends(account_id)
+
+
+@app.post("/api/v1/portfolio/{account_id}/snapshots")
+def portfolio_create_snapshot(account_id: str) -> dict[str, Any]:
+    return persist_snapshot(account_id)
