@@ -9,13 +9,23 @@ from fastapi import FastAPI, HTTPException, Query
 from backend.app import __version__
 from backend.app.db import fetch_all, fetch_one, ping_db
 from backend.app.indicators_loader import sync_indicators_from_yaml
+from backend.app.analytics import (
+    compute_correlation,
+    compute_derived_batch,
+    compute_market_scores,
+    compute_regime,
+)
+from backend.app.analytics.config import DOMAIN_WEIGHTS
 from backend.app.schemas import (
+    CorrelationResponse,
     HealthResponse,
     IndicatorOut,
     JobOut,
     ObservationOut,
+    RegimeResponse,
     RunJobRequest,
     RunJobResponse,
+    ScoresResponse,
 )
 from backend.app.settings import get_settings
 
@@ -38,7 +48,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(
     title="MarketPulse API",
     version=__version__,
-    description="Phase 1: health + indicator observations + collection job triggers",
+    description="Phase 1–3: indicators, collection jobs, regime & domain scores",
     lifespan=lifespan,
 )
 
@@ -184,3 +194,49 @@ def run_job(body: RunJobRequest) -> RunJobResponse:
     else:
         raise HTTPException(status_code=400, detail="unsupported provider")
     return RunJobResponse(result=result)
+
+
+@app.get("/api/v1/scores", response_model=ScoresResponse)
+def get_scores() -> ScoresResponse:
+    """영역별 Score + 가중 종합 Market Score (규칙 기반)."""
+    return ScoresResponse(**compute_market_scores())
+
+
+@app.get("/api/v1/scores/{domain}")
+def get_domain_score(domain: str) -> dict[str, Any]:
+    key = domain.lower().replace("-", "_")
+    aliases = {"rates_bond": "rates", "ratesbond": "rates"}
+    key = aliases.get(key, key)
+    if key not in DOMAIN_WEIGHTS:
+        raise HTTPException(
+            status_code=404,
+            detail=f"unknown domain; choose from {list(DOMAIN_WEIGHTS)}",
+        )
+    payload = compute_market_scores()
+    body = payload["domains"][key]
+    body["analyzed_at"] = payload["analyzed_at"]
+    body["market_score"] = payload["market_score"]
+    return body
+
+
+@app.get("/api/v1/regime", response_model=RegimeResponse)
+def get_regime() -> RegimeResponse:
+    """성장×물가 사분면 Market Regime + 유사 국면."""
+    return RegimeResponse(**compute_regime())
+
+
+@app.get("/api/v1/correlation", response_model=CorrelationResponse)
+def get_correlation(
+    ids: str | None = Query(
+        default=None,
+        description="comma-separated indicator_ids (optional)",
+    ),
+) -> CorrelationResponse:
+    id_list = [x.strip() for x in ids.split(",") if x.strip()] if ids else None
+    return CorrelationResponse(**compute_correlation(id_list))
+
+
+@app.post("/api/v1/analytics/derived/run", response_model=RunJobResponse)
+def run_derived() -> RunJobResponse:
+    """MoM/YoY 등 최소 파생 관측을 derived_observations에 적재."""
+    return RunJobResponse(result=compute_derived_batch())
