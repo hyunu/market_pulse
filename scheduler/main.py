@@ -91,8 +91,15 @@ def job_retry_failed() -> None:
 
 
 def job_compute_derived() -> None:
-    """파생 계산 배치 훅 (Phase 1: no-op 로그)."""
-    logger.info("compute_derived skeleton — formulas live in collectors.derived")
+    """Phase 3: MoM/YoY 파생 관측 적재."""
+    from backend.app.analytics import compute_derived_batch
+
+    logger.info("Starting compute_derived")
+    try:
+        result = compute_derived_batch()
+        logger.info("compute_derived done: %s", result)
+    except Exception:  # noqa: BLE001
+        logger.exception("compute_derived failed")
 
 
 def build_scheduler() -> BackgroundScheduler:
