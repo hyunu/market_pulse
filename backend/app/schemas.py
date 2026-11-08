@@ -117,3 +117,16 @@ class CorrelationResponse(BaseModel):
     source_mode: str
     method: str
     analyzed_at: str | None = None
+
+
+class TransactionCreate(BaseModel):
+    trade_date: str
+    symbol: str
+    asset_class: str
+    side: Literal["buy", "sell", "deposit", "withdraw", "dividend_reinvest", "fee"]
+    quantity: float
+    price: float
+    fee: float = 0
+    currency: str = "USD"
+    fx_rate: float = 1
+    note: str | None = None

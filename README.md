@@ -2,7 +2,7 @@
 
 글로벌 거시경제 분석과 개인 투자자산 관리를 통합한 **일일 금융 모니터링** 플랫폼입니다.
 
-현재 저장소는 **Phase 1 데이터 기반 + Phase 2 시장 현황판 + Phase 3 분석 엔진**까지 포함합니다.
+현재 저장소는 **Phase 1–4**(데이터 · 현황판 · 분석 엔진 · 개인 포트폴리오)까지 포함합니다.
 
 ## 구성
 
@@ -103,7 +103,7 @@ pytest -q
 | Liquidity | Fed 자산·M2·TGA·RRP(개별) + 금리 |
 | Equity | 지수 프록시 (밸류 본지표는 Phase 3) |
 | Risk | VIX·MOVE·HY·Stress·NFCI |
-| Portfolio | Phase 4 placeholder |
+| Portfolio | 총평가·XIRR·MDD·배분·배당·거시 노출 (데모 계좌) |
 
 모든 지표 카드/푸터에 **출처(provider/source_id)·기준일(as-of)** 을 표시합니다.
 
@@ -131,12 +131,27 @@ pytest -q
 DB 관측이 부족하면 엔진이 **결정적 synthetic** 시계열로 계산하고 `source_mode`에 표시합니다.  
 Dashboard는 실 API를 우선 호출하고, 실패 시 프론트 목 폴백(+배지)을 사용합니다.
 
+## Phase 4 포트폴리오 API
+
+| Method | Path | 설명 |
+| --- | --- | --- |
+| GET | `/api/v1/portfolio/accounts` | 계좌 목록 |
+| POST | `/api/v1/portfolio/demo/seed` | 데모 계좌 DB 시드 |
+| GET | `/api/v1/portfolio/{id}/overview` | 평가·배분·배당·거시 노출 |
+| GET/POST | `/api/v1/portfolio/{id}/transactions` | 거래 조회/등록 |
+| GET | `/api/v1/portfolio/{id}/dividends` | 배당 |
+| POST | `/api/v1/portfolio/{id}/snapshots` | 평가 스냅샷 저장 |
+
+DB가 없어도 데모 데이터로 overview가 동작합니다. **매매 권유가 아닙니다.**
+
+마이그레이션: `database/migrations/003_portfolio.sql`, `004_portfolio_seed.sql`
+
 ## Phase 로드맵
 
 1. Phase 1 데이터 기반
 2. Phase 2 시장 현황판
-3. **Phase 3 Analytics / Regime / Scores** ← 포함
-4. Phase 4 개인 포트폴리오
+3. Phase 3 Analytics / Regime / Scores
+4. **Phase 4 개인 포트폴리오** ← 포함
 
 ## 라이선스·고지
 

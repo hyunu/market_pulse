@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     indicators_yaml: str = "config/indicators.yaml"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
-    app_version: str = "0.3.0"
+    app_version: str = "0.4.0"
 
     @property
     def indicators_path(self) -> Path:
