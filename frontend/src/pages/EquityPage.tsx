@@ -27,9 +27,9 @@ export function EquityPage() {
         <>
           <section>
             <h2 className="mp-section-title">Equity proxies</h2>
-            <div className="mt-4 grid gap-x-10 sm:grid-cols-2">
+            <div className="mp-metric-grid mt-3 grid-cols-2">
               {series.map((s, i) => (
-                <IndicatorCard key={s.indicator.indicator_id} data={s} index={i} />
+                <IndicatorCard key={s.indicator.indicator_id} data={s} index={i} flush />
               ))}
             </div>
             <div className="mt-8">

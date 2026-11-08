@@ -10,7 +10,7 @@ type Props = {
   title?: string
 }
 
-export function TimeSeriesChart({ series, height = 360, title }: Props) {
+export function TimeSeriesChart({ series, height = 320, title }: Props) {
   const hasData = series.some((s) => s.points.length > 0)
 
   const option = useMemo(() => {
@@ -26,7 +26,7 @@ export function TimeSeriesChart({ series, height = 360, title }: Props) {
             top: 0,
             textStyle: {
               color: CHART.ink,
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: 600,
               fontFamily: 'Figtree, sans-serif',
             },
@@ -36,25 +36,39 @@ export function TimeSeriesChart({ series, height = 360, title }: Props) {
         trigger: 'axis',
         backgroundColor: CHART.tooltipBg,
         borderColor: CHART.tooltipBorder,
-        textStyle: { color: CHART.ink, fontFamily: 'Figtree, sans-serif' },
+        borderWidth: 1,
+        textStyle: { color: CHART.ink, fontSize: 12, fontFamily: 'Figtree, sans-serif' },
       },
       legend: {
-        top: title ? 26 : 0,
-        textStyle: { color: CHART.muted, fontFamily: 'Figtree, sans-serif' },
+        top: title ? 22 : 0,
+        itemWidth: 10,
+        itemHeight: 2,
+        textStyle: { color: CHART.muted, fontSize: 11, fontFamily: 'Figtree, sans-serif' },
       },
-      grid: { left: 48, right: 16, top: title ? 58 : 36, bottom: 36 },
+      grid: {
+        left: 44,
+        right: 8,
+        top: title ? 52 : 32,
+        bottom: 28,
+      },
       xAxis: {
         type: 'category',
         boundaryGap: false,
         data: dates,
-        axisLine: { lineStyle: { color: CHART.line } },
-        axisLabel: { color: CHART.muted, hideOverlap: true },
+        axisLine: { lineStyle: { color: CHART.lineStrong, width: 1 } },
+        axisTick: { show: false },
+        axisLabel: { color: CHART.muted, fontSize: 10, hideOverlap: true },
       },
       yAxis: {
         type: 'value',
         scale: true,
-        splitLine: { lineStyle: { color: CHART.line, type: 'dashed' } },
-        axisLabel: { color: CHART.muted },
+        splitNumber: 4,
+        splitLine: {
+          lineStyle: { color: CHART.line, type: 'solid', width: 1, opacity: 0.9 },
+        },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { color: CHART.muted, fontSize: 10 },
       },
       series: series.map((s, idx) => {
         const map = new Map(s.points.map((p) => [p.date, p.value]))
@@ -63,10 +77,10 @@ export function TimeSeriesChart({ series, height = 360, title }: Props) {
           name: labelOf(s.indicator.name_ko, s.indicator.name),
           type: 'line',
           showSymbol: false,
-          smooth: 0.12,
+          smooth: 0.1,
           connectNulls: true,
           data: dates.map((d) => map.get(d) ?? null),
-          lineStyle: { width: 2, color },
+          lineStyle: { width: 1.8, color },
           itemStyle: { color },
           areaStyle:
             series.length === 1
@@ -101,7 +115,7 @@ export function TimeSeriesChart({ series, height = 360, title }: Props) {
   }
 
   return (
-    <div className="mp-rise border-t border-[var(--color-line)] pt-3">
+    <div className="mp-rise border-t border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_55%,transparent)] pt-2">
       <ReactECharts option={option} style={{ height }} notMerge lazyUpdate />
     </div>
   )

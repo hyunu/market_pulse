@@ -9,7 +9,13 @@ type Props = {
   onPeriodChange?: (p: PeriodKey) => void
   sourceMode?: 'api' | 'mock' | 'mixed'
   extra?: ReactNode
-  showBrand?: boolean
+}
+
+function shortMode(mode?: string): string {
+  if (!mode) return ''
+  if (mode === 'api') return 'api'
+  if (mode === 'mixed') return 'mix'
+  return 'smp'
 }
 
 export function PageHeader({
@@ -21,22 +27,16 @@ export function PageHeader({
   extra,
 }: Props) {
   return (
-    <header className="mp-rise mb-8 flex flex-col gap-5 border-b border-[var(--color-line)] pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <header className="mp-rise mb-6 flex flex-col gap-4 border-b border-[var(--color-line)] pb-4 sm:mb-7 sm:flex-row sm:items-end sm:justify-between sm:pb-5">
       <div className="max-w-2xl">
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-accent)]">
-          MarketPulse
-        </p>
-        <h1 className="font-display text-[1.85rem] font-semibold leading-tight tracking-tight text-[var(--color-ink)] md:text-[2.15rem]">
+        <p className="mp-kicker mb-1.5">MarketPulse</p>
+        <h1 className="font-display text-[1.55rem] font-semibold leading-tight tracking-tight text-[var(--color-ink)] md:text-[1.85rem]">
           {title}
         </h1>
-        <p className="mt-2 text-sm leading-relaxed text-[var(--color-muted)]">{subtitle}</p>
-        {sourceMode ? (
-          <p className="mp-source mt-3">
-            source {sourceMode === 'api' ? 'live api' : sourceMode === 'mixed' ? 'api + sample' : 'sample'}
-          </p>
-        ) : null}
+        <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--color-muted)]">{subtitle}</p>
+        {sourceMode ? <p className="mp-source mt-2">{shortMode(sourceMode)}</p> : null}
       </div>
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-wrap items-end gap-3 overflow-x-auto">
         {extra}
         {period && onPeriodChange ? (
           <PeriodSelector value={period} onChange={onPeriodChange} />

@@ -29,9 +29,9 @@ export function LiquidityPage() {
         <>
           <section>
             <h2 className="mp-section-title">Liquidity components</h2>
-            <div className="mt-4 grid gap-x-8 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mp-metric-grid mt-3 grid-cols-2 xl:grid-cols-4">
               {liq.series.map((s, i) => (
-                <IndicatorCard key={s.indicator.indicator_id} data={s} index={i} />
+                <IndicatorCard key={s.indicator.indicator_id} data={s} index={i} flush />
               ))}
             </div>
             <div className="mt-8 grid gap-8 lg:grid-cols-2">
@@ -50,9 +50,9 @@ export function LiquidityPage() {
 
           <section className="mt-14">
             <h2 className="mp-section-title">Rates & spreads</h2>
-            <div className="mt-4 grid gap-x-8 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="mp-metric-grid mt-3 grid-cols-2 xl:grid-cols-3">
               {rates.series.map((s, i) => (
-                <IndicatorCard key={s.indicator.indicator_id} data={s} index={i} />
+                <IndicatorCard key={s.indicator.indicator_id} data={s} index={i} flush />
               ))}
             </div>
             <div className="mt-8">
