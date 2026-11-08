@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope", "Noto Sans KR", sans-serif;
+  --font-display: "Source Serif 4", "Noto Serif KR", Georgia, serif;
+  --color-ink: #e8f1f4;
+  --color-muted: #8aa0ab;
+  --color-panel: #122833;
+  --color-panel-2: #0e212c;
+  --color-line: #1e3a47;
+  --color-accent: #3ddc97;
+  --color-warn: #f4c95f;
+  --color-down: #ff6b6b;
+  --color-up: #3ddc97;
+  --color-canvas: #07141c;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background:
+    radial-gradient(900px 480px at 8% -10%, rgba(61, 220, 151, 0.12), transparent 55%),
+    radial-gradient(800px 420px at 100% 0%, rgba(56, 148, 180, 0.16), transparent 50%),
+    linear-gradient(180deg, #0a1a24 0%, var(--color-canvas) 45%, #061018 100%);
+  background-attachment: fixed;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(61, 220, 151, 0.3);
+}
