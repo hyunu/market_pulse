@@ -9,7 +9,7 @@ type Props = {
 
 export function PeriodSelector({ value, onChange }: Props) {
   return (
-    <div className="inline-flex flex-wrap gap-1 rounded-lg border border-[var(--color-line)] bg-[var(--color-panel-2)] p-1">
+    <div className="inline-flex flex-wrap gap-x-3 gap-y-1 border-b border-[var(--color-line)]">
       {PERIODS.map((p) => {
         const active = p === value
         return (
@@ -17,13 +17,16 @@ export function PeriodSelector({ value, onChange }: Props) {
             key={p}
             type="button"
             onClick={() => onChange(p)}
-            className={`rounded-md px-2.5 py-1 text-xs font-semibold tracking-wide transition ${
+            className={`relative -mb-px pb-2 text-xs font-semibold tracking-wide transition-colors ${
               active
-                ? 'bg-[var(--color-accent)] text-[#062016]'
-                : 'text-[var(--color-muted)] hover:text-[var(--color-ink)]'
+                ? 'text-[var(--color-ink)]'
+                : 'text-[var(--color-muted)] hover:text-[var(--color-ink-soft)]'
             }`}
           >
             {p}
+            {active ? (
+              <span className="absolute inset-x-0 bottom-0 h-[2px] bg-[var(--color-accent)]" />
+            ) : null}
           </button>
         )
       })}

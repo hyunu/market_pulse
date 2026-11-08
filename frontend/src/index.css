@@ -1,18 +1,32 @@
 @import "tailwindcss";
 
+/*
+  MarketPulse — Steel Ledger
+  딥 잉크 / 스틸 / 앰버. 라이트 대기감. 금융 모니터링용.
+*/
+
 @theme {
-  --font-sans: "Manrope", "Noto Sans KR", sans-serif;
-  --font-display: "Source Serif 4", "Noto Serif KR", Georgia, serif;
-  --color-ink: #e8f1f4;
-  --color-muted: #8aa0ab;
-  --color-panel: #122833;
-  --color-panel-2: #0e212c;
-  --color-line: #1e3a47;
-  --color-accent: #3ddc97;
-  --color-warn: #f4c95f;
-  --color-down: #ff6b6b;
-  --color-up: #3ddc97;
-  --color-canvas: #07141c;
+  --font-sans: "Figtree", "Noto Sans KR", sans-serif;
+  --font-display: "Bricolage Grotesque", "Noto Sans KR", sans-serif;
+
+  --color-ink: #0b1c2c;
+  --color-ink-soft: #1a3144;
+  --color-muted: #5c7384;
+  --color-line: #d5dee6;
+  --color-line-strong: #b7c5d1;
+  --color-panel: #ffffff;
+  --color-panel-2: #f4f7fa;
+  --color-canvas: #e9eef3;
+  --color-accent: #c9842f;
+  --color-accent-ink: #8a5a16;
+  --color-steel: #3d5a73;
+  --color-up: #1f6b52;
+  --color-down: #b03a3a;
+  --color-warn: #c9842f;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-1: 420ms;
+  --dur-2: 700ms;
 }
 
 html,
@@ -25,10 +39,25 @@ body {
   margin: 0;
   font-family: var(--font-sans);
   color: var(--color-ink);
-  background:
-    radial-gradient(900px 480px at 8% -10%, rgba(61, 220, 151, 0.12), transparent 55%),
-    radial-gradient(800px 420px at 100% 0%, rgba(56, 148, 180, 0.16), transparent 50%),
-    linear-gradient(180deg, #0a1a24 0%, var(--color-canvas) 45%, #061018 100%);
+  background-color: var(--color-canvas);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(233, 238, 243, 0.92) 42%, #e2e9f0 100%),
+    radial-gradient(900px 520px at 12% -8%, rgba(61, 90, 115, 0.14), transparent 58%),
+    radial-gradient(720px 420px at 92% 8%, rgba(201, 132, 47, 0.1), transparent 52%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 47px,
+      rgba(11, 28, 44, 0.035) 47px,
+      rgba(11, 28, 44, 0.035) 48px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 47px,
+      rgba(11, 28, 44, 0.03) 47px,
+      rgba(11, 28, 44, 0.03) 48px
+    );
   background-attachment: fixed;
 }
 
@@ -37,5 +66,113 @@ body {
 }
 
 ::selection {
-  background: rgba(61, 220, 151, 0.3);
+  background: rgba(201, 132, 47, 0.28);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ——— Motions ——— */
+@keyframes mp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mp-brand-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.08em;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    letter-spacing: -0.03em;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mp-draw-line {
+  from {
+    stroke-dashoffset: 240;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes mp-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mp-rise {
+  animation: mp-rise var(--dur-2) var(--ease-out) both;
+}
+
+.mp-brand {
+  animation: mp-brand-in 900ms var(--ease-out) both;
+}
+
+.mp-fade {
+  animation: mp-fade var(--dur-1) var(--ease-out) both;
+}
+
+.mp-delay-1 {
+  animation-delay: 80ms;
+}
+.mp-delay-2 {
+  animation-delay: 160ms;
+}
+.mp-delay-3 {
+  animation-delay: 240ms;
+}
+.mp-delay-4 {
+  animation-delay: 320ms;
+}
+
+.mp-pulse-line {
+  stroke-dasharray: 240;
+  animation: mp-draw-line 1.4s var(--ease-out) 0.25s both;
+}
+
+/* Quiet source mark */
+.mp-source {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  opacity: 0.75;
+}
+
+/* Section rule */
+.mp-section-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.mp-hairline {
+  border-color: var(--color-line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-rise,
+  .mp-brand,
+  .mp-fade,
+  .mp-pulse-line {
+    animation: none !important;
+  }
 }
