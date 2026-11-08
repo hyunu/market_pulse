@@ -48,7 +48,7 @@ export function LiquidityPage() {
             </div>
           </section>
 
-          <section className="mt-14">
+          <section className="mt-[var(--space-6)]">
             <h2 className="mp-section-title">Rates & spreads</h2>
             <div className="mp-metric-grid mt-3 grid-cols-2 xl:grid-cols-3">
               {rates.series.map((s, i) => (

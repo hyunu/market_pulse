@@ -10,6 +10,16 @@ class HealthResponse(BaseModel):
     status: str
     db: Literal["up", "down"]
     version: str
+    fred_key_configured: bool = False
+    allow_synthetic_fallback: bool = False
+
+
+class FeedStatusResponse(BaseModel):
+    fred_key_configured: bool
+    allow_synthetic_fallback: bool
+    observation_counts: dict[str, int] = {}
+    recent_jobs: list[dict[str, Any]] = []
+    notes: list[str] = []
 
 
 class IndicatorOut(BaseModel):
@@ -50,8 +60,8 @@ class RunJobRequest(BaseModel):
     provider: Literal["fred", "bls", "bea", "yahoo"] = "fred"
     job_type: str = "daily"
     live: bool = Field(
-        default=False,
-        description="yahoo 전용: True면 실제 네트워크 호출(프로토타입)",
+        default=True,
+        description="yahoo 전용: True면 실제 네트워크 호출(프로토타입, 기본 True)",
     )
 
 
@@ -79,8 +89,9 @@ class DomainScoreOut(BaseModel):
     drivers: list[dict[str, Any]] = []
     contrarians: list[dict[str, Any]] = []
     coverage: float = 0
-    source_mode: str = "synthetic"
+    source_mode: str = "unavailable"
     as_of: str | None = None
+    status: str | None = None
 
 
 class ScoresResponse(BaseModel):
@@ -91,6 +102,7 @@ class ScoresResponse(BaseModel):
     weights: dict[str, float]
     domains: dict[str, Any]
     source_mode: str
+    status: str | None = None
     methodology: dict[str, Any]
 
 
@@ -104,6 +116,7 @@ class RegimeResponse(BaseModel):
     similar_regimes: list[dict[str, Any]]
     confidence: float
     source_mode: str
+    status: str | None = None
     as_of: str | None
     analyzed_at: str | None = None
     methodology: dict[str, Any] | None = None

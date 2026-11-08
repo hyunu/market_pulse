@@ -51,6 +51,11 @@ def domain_score(domain: str) -> dict[str, Any]:
             comps.append(c)
 
     if not comps:
+        mode = "unavailable"
+        if modes and all(m == "synthetic" for m in modes):
+            mode = "synthetic"
+        elif any(m == "api" for m in modes):
+            mode = "mixed"
         return {
             "domain": domain,
             "score": None,
@@ -59,8 +64,9 @@ def domain_score(domain: str) -> dict[str, Any]:
             "drivers": [],
             "contrarians": [],
             "coverage": 0.0,
-            "source_mode": "synthetic",
+            "source_mode": mode,
             "as_of": None,
+            "status": "데이터 부족",
         }
 
     wsum = sum(c.weight for c in comps)
@@ -101,9 +107,14 @@ def domain_score(domain: str) -> dict[str, Any]:
         ]
 
     as_ofs = [c.as_of for c in comps if c.as_of]
-    source_mode = "api" if all(m == "api" for m in modes) else (
-        "mixed" if any(m == "api" for m in modes) else "synthetic"
-    )
+    if modes and all(m == "api" for m in modes):
+        source_mode = "api"
+    elif any(m == "api" for m in modes):
+        source_mode = "mixed"
+    elif any(m == "synthetic" for m in modes):
+        source_mode = "synthetic"
+    else:
+        source_mode = "unavailable"
     return {
         "domain": domain,
         "score": round(score, 2),
@@ -145,10 +156,17 @@ def market_scores() -> dict[str, Any]:
         source_mode = "api"
     elif "api" in modes:
         source_mode = "mixed"
-    else:
+    elif modes == {"synthetic"} or "synthetic" in modes:
         source_mode = "synthetic"
+    else:
+        source_mode = "unavailable"
 
     as_ofs = [d["as_of"] for d in domains.values() if d["as_of"]]
+    status = None
+    if market is None or confidence <= 0:
+        status = "데이터 부족"
+        confidence = 0.0
+        market = None
     return {
         "as_of": max(as_ofs) if as_ofs else None,
         "analyzed_at": None,  # filled by service
@@ -157,10 +175,12 @@ def market_scores() -> dict[str, Any]:
         "weights": DOMAIN_WEIGHTS,
         "domains": domains,
         "source_mode": source_mode,
+        "status": status,
         "methodology": {
             "normalize": "rolling 36-obs z-score → tanh*100",
             "aggregate": "weighted mean of domain scores",
             "note": "Earnings/Valuation use equity proxies until fundamental series land",
             "liquidity_note": "TGA/ON RRP/Fed assets scored individually — never summed as official liquidity",
+            "fallback": "synthetic only when ALLOW_SYNTHETIC_FALLBACK=1",
         },
     }

@@ -5,10 +5,10 @@ import type { IndicatorSeries, PeriodKey } from '../api/types'
 export function useIndicatorSeries(
   indicatorIds: string[],
   period: PeriodKey,
-): { series: IndicatorSeries[]; loading: boolean; sourceMode: 'api' | 'mock' | 'mixed' } {
+): { series: IndicatorSeries[]; loading: boolean; sourceMode: 'api' | 'empty' | 'mixed' } {
   const [series, setSeries] = useState<IndicatorSeries[]>([])
   const [loading, setLoading] = useState(true)
-  const [sourceMode, setSourceMode] = useState<'api' | 'mock' | 'mixed'>('api')
+  const [sourceMode, setSourceMode] = useState<'api' | 'empty' | 'mixed'>('api')
 
   useEffect(() => {
     let cancelled = false
@@ -52,7 +52,7 @@ export function useIndicatorSeries(
       if (cancelled) return
       setSeries(results)
       const modes = new Set(results.map((r) => r.sourceMode))
-      setSourceMode(modes.size > 1 ? 'mixed' : [...modes][0] || 'mock')
+      setSourceMode(modes.size > 1 ? 'mixed' : [...modes][0] || 'empty')
       setLoading(false)
     }
     void run()

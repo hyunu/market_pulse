@@ -33,7 +33,7 @@ export function RiskPage() {
               ))}
             </div>
           </section>
-          <section className="mt-12 grid gap-8 lg:grid-cols-2">
+          <section className="mt-[var(--space-6)] grid gap-8 lg:grid-cols-2">
             <TimeSeriesChart
               series={series.filter((s) =>
                 ['us_vix', 'us_move'].includes(s.indicator.indicator_id),

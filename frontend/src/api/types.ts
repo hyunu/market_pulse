@@ -25,6 +25,8 @@ export type Health = {
   status: string
   db: 'up' | 'down'
   version: string
+  fred_key_configured?: boolean
+  allow_synthetic_fallback?: boolean
 }
 
 export type PeriodKey = '1M' | '3M' | '1Y' | '5Y' | '10Y' | 'MAX'
@@ -39,7 +41,7 @@ export type IndicatorSeries = {
   points: SeriesPoint[]
   asOf: string | null
   changePct: number | null
-  sourceMode: 'api' | 'mock'
+  sourceMode: 'api' | 'empty'
 }
 
 export type DomainScore = {
@@ -60,7 +62,8 @@ export type ScoresPayload = {
   confidence: number
   weights: Record<string, number>
   domains: Record<string, DomainScore>
-  source_mode: 'api' | 'synthetic' | 'mixed' | string
+  source_mode: 'api' | 'synthetic' | 'mixed' | 'unavailable' | string
+  status?: string | null
   methodology: Record<string, unknown>
 }
 
@@ -80,6 +83,7 @@ export type RegimePayload = {
   }>
   confidence: number
   source_mode: string
+  status?: string | null
   as_of: string | null
   analyzed_at?: string | null
 }

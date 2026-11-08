@@ -28,6 +28,7 @@ from backend.app.portfolio import (
 from backend.app.portfolio.service import persist_snapshot
 from backend.app.schemas import (
     CorrelationResponse,
+    FeedStatusResponse,
     HealthResponse,
     IndicatorOut,
     JobOut,
@@ -58,6 +59,23 @@ async def lifespan(_app: FastAPI):
             logger.info("Portfolio demo seed: %s", seeded)
         except Exception:  # noqa: BLE001
             logger.exception("Portfolio demo seed skipped/failed")
+        # 기동 시 지수 관측이 비면 Yahoo 프로토타입 수집 시도 (키 불필요)
+        try:
+            row = fetch_one(
+                "SELECT COUNT(*)::int AS n FROM indicator_observations WHERE value IS NOT NULL"
+            )
+            if row and int(row["n"] or 0) < 50:
+                from collectors.market import collect_market
+
+                logger.info("Boot: observations sparse — running Yahoo live collect")
+                collect_market(job_type="boot", live=True)
+        except Exception:  # noqa: BLE001
+            logger.exception("Boot Yahoo collect skipped/failed")
+        if not settings.fred_key_configured:
+            logger.warning(
+                "FRED_API_KEY unset — FRED collect will fail until env is provided. "
+                "Frontend must never receive the key; use POST /api/v1/jobs/run."
+            )
     yield
 
 
@@ -71,15 +89,65 @@ app = FastAPI(
 
 @app.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
+    settings = get_settings()
     db_ok = ping_db()
     body = HealthResponse(
         status="ok" if db_ok else "degraded",
         db="up" if db_ok else "down",
-        version=get_settings().app_version,
+        version=settings.app_version,
+        fred_key_configured=settings.fred_key_configured,
+        allow_synthetic_fallback=settings.allow_synthetic_fallback,
     )
     if not db_ok:
         raise HTTPException(status_code=503, detail=body.model_dump())
     return body
+
+
+@app.get("/api/v1/feed/status", response_model=FeedStatusResponse)
+def feed_status() -> FeedStatusResponse:
+    """수집/키/실관측 건수 — UI가 가짜 대신 상태를 표시할 때 사용."""
+    settings = get_settings()
+    notes: list[str] = []
+    if not settings.fred_key_configured:
+        notes.append(
+            "FRED_API_KEY 미설정 — 거시·금리·유동성 FRED 시리즈 수집 불가. "
+            "https://fred.stlouisfed.org/docs/api/api_key.html"
+        )
+    if settings.allow_synthetic_fallback:
+        notes.append("ALLOW_SYNTHETIC_FALLBACK=1 — 테스트용 합성 시계열 허용 중")
+
+    counts: dict[str, int] = {}
+    jobs: list[dict[str, Any]] = []
+    if ping_db():
+        rows = fetch_all(
+            """
+            SELECT indicator_id, COUNT(*)::int AS n
+            FROM indicator_observations
+            WHERE value IS NOT NULL
+            GROUP BY indicator_id
+            ORDER BY indicator_id
+            """
+        )
+        counts = {r["indicator_id"]: int(r["n"]) for r in rows}
+        jobs = fetch_all(
+            """
+            SELECT job_id, provider, job_type, status, started_at, finished_at,
+                   records_upserted, error_message
+            FROM collection_jobs
+            ORDER BY started_at DESC NULLS LAST
+            LIMIT 8
+            """
+        )
+    else:
+        notes.append("DB 연결 불가")
+
+    return FeedStatusResponse(
+        fred_key_configured=settings.fred_key_configured,
+        allow_synthetic_fallback=settings.allow_synthetic_fallback,
+        observation_counts=counts,
+        recent_jobs=jobs,
+        notes=notes,
+    )
 
 
 @app.get("/api/v1/indicators", response_model=list[IndicatorOut])
@@ -191,7 +259,11 @@ def recent_jobs(limit: int = Query(default=20, ge=1, le=100)) -> list[JobOut]:
 
 @app.post("/api/v1/jobs/run", response_model=RunJobResponse)
 def run_job(body: RunJobRequest) -> RunJobResponse:
+    """수집 트리거. API 키는 서버 env에서만 읽음 (요청 바디/프론트에 키 금지)."""
+    settings = get_settings()
     if body.provider == "fred":
+        if not settings.fred_key_configured:
+            logger.error("FRED collect refused: FRED_API_KEY not configured in server env")
         from collectors.fred import collect_fred
 
         result = collect_fred(job_type=body.job_type)

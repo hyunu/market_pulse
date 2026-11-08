@@ -1,10 +1,20 @@
+import os
+
 import pytest
+
+# 엔진 단위 테스트만 합성 폴백 허용 (실서비스 기본은 금지)
+os.environ["ALLOW_SYNTHETIC_FALLBACK"] = "1"
+
+from backend.app.settings import get_settings
+
+get_settings.cache_clear()
 
 from backend.app.analytics.config import DOMAIN_WEIGHTS
 from backend.app.analytics.regime import compute_regime_payload
 from backend.app.analytics.scoring import domain_score, market_scores
 from backend.app.analytics.stats import pearson, rolling_z, tanh_score
 from backend.app.analytics.correlation import compute_correlation_matrix
+from backend.app.analytics.series import load_series
 
 
 def test_domain_weights_sum_and_keys():
@@ -63,3 +73,16 @@ def test_correlation_matrix_diagonal():
     corr = compute_correlation_matrix(["us_sp500", "us_vix", "us_treasury_10y"])
     assert corr["matrix"]["us_sp500"]["us_sp500"] == 1.0
     assert corr["pairs_computed"] >= 0
+
+
+def test_no_synthetic_when_disabled(monkeypatch):
+    monkeypatch.setenv("ALLOW_SYNTHETIC_FALLBACK", "0")
+    get_settings.cache_clear()
+    # DB에 없으면 unavailable
+    bundle = load_series("__missing_indicator__")
+    assert bundle.source_mode in {"unavailable", "api"}
+    if bundle.source_mode == "unavailable":
+        assert bundle.points == []
+    get_settings.cache_clear()
+    monkeypatch.setenv("ALLOW_SYNTHETIC_FALLBACK", "1")
+    get_settings.cache_clear()

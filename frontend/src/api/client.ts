@@ -1,4 +1,3 @@
-import { MOCK_INDICATORS, mockObservations } from '../data/mock'
 import type {
   CorrelationPayload,
   Health,
@@ -23,6 +22,14 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
+export type FeedStatus = {
+  fred_key_configured: boolean
+  allow_synthetic_fallback: boolean
+  observation_counts: Record<string, number>
+  recent_jobs: Array<Record<string, unknown>>
+  notes: string[]
+}
+
 export async function getHealth(): Promise<Health | null> {
   try {
     return await fetchJson<Health>('/health')
@@ -31,30 +38,65 @@ export async function getHealth(): Promise<Health | null> {
   }
 }
 
+export async function getFeedStatus(): Promise<FeedStatus | null> {
+  try {
+    return await fetchJson<FeedStatus>('/api/v1/feed/status')
+  } catch {
+    return null
+  }
+}
+
+export type CollectProvider = 'fred' | 'bls' | 'bea' | 'yahoo'
+
+/** 키는 백엔드 env에서만 읽음. 프론트는 수집 API만 호출. */
+export async function runCollectJob(
+  provider: CollectProvider,
+  opts?: { jobType?: string; live?: boolean },
+): Promise<{ ok: boolean; result: Record<string, unknown>; error?: string }> {
+  try {
+    const body = await fetchJson<{ result: Record<string, unknown> }>('/api/v1/jobs/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider,
+        job_type: opts?.jobType || 'manual',
+        live: opts?.live ?? true,
+      }),
+    })
+    const result = body.result || {}
+    const status = String(result.status || '')
+    const errors = (result.errors as string[] | undefined) || []
+    const ok = status === 'success' || status === 'partial'
+    return {
+      ok,
+      result,
+      error: ok ? undefined : errors[0] || status || 'collect failed',
+    }
+  } catch (e) {
+    return { ok: false, result: {}, error: e instanceof Error ? e.message : 'collect failed' }
+  }
+}
+
 export async function listIndicators(params?: {
   category?: string
   provider?: string
-}): Promise<{ items: Indicator[]; sourceMode: 'api' | 'mock' }> {
+}): Promise<{ items: Indicator[]; sourceMode: 'api' | 'empty' }> {
   const qs = new URLSearchParams()
   if (params?.category) qs.set('category', params.category)
   if (params?.provider) qs.set('provider', params.provider)
   qs.set('limit', '200')
   try {
     const items = await fetchJson<Indicator[]>(`/api/v1/indicators?${qs}`)
-    if (!items.length) throw new Error('empty')
-    return { items, sourceMode: 'api' }
+    return { items, sourceMode: items.length ? 'api' : 'empty' }
   } catch {
-    let items = MOCK_INDICATORS
-    if (params?.category) items = items.filter((i) => i.category === params.category)
-    if (params?.provider) items = items.filter((i) => i.provider === params.provider)
-    return { items, sourceMode: 'mock' }
+    return { items: [], sourceMode: 'empty' }
   }
 }
 
 export async function getObservations(
   indicatorId: string,
   opts?: { start?: string; end?: string; limit?: number },
-): Promise<{ items: Observation[]; sourceMode: 'api' | 'mock' }> {
+): Promise<{ items: Observation[]; sourceMode: 'api' | 'empty' }> {
   const qs = new URLSearchParams()
   if (opts?.start) qs.set('start', opts.start)
   if (opts?.end) qs.set('end', opts.end)
@@ -63,10 +105,9 @@ export async function getObservations(
     const items = await fetchJson<Observation[]>(
       `/api/v1/indicators/${encodeURIComponent(indicatorId)}/observations?${qs}`,
     )
-    if (!items.length) throw new Error('empty observations')
-    return { items, sourceMode: 'api' }
+    return { items, sourceMode: items.length ? 'api' : 'empty' }
   } catch {
-    return { items: mockObservations(indicatorId), sourceMode: 'mock' }
+    return { items: [], sourceMode: 'empty' }
   }
 }
 
@@ -92,11 +133,11 @@ export function changePct(values: number[]): number | null {
   return ((last - first) / Math.abs(first)) * 100
 }
 
-const MOCK_SCORES: ScoresPayload = {
-  as_of: new Date().toISOString().slice(0, 10),
-  analyzed_at: new Date().toISOString(),
-  market_score: 12.5,
-  confidence: 0.62,
+const EMPTY_SCORES: ScoresPayload = {
+  as_of: null,
+  analyzed_at: null,
+  market_score: null,
+  confidence: 0,
   weights: {
     growth: 20,
     liquidity: 20,
@@ -106,53 +147,47 @@ const MOCK_SCORES: ScoresPayload = {
     valuation: 10,
     risk: 5,
   },
-  domains: {
-    growth: { domain: 'growth', score: 18, weight: 20, drivers: [], contrarians: [], coverage: 1, source_mode: 'mock' },
-    liquidity: { domain: 'liquidity', score: 8, weight: 20, drivers: [], contrarians: [], coverage: 1, source_mode: 'mock' },
-    inflation: { domain: 'inflation', score: -6, weight: 15, drivers: [], contrarians: [], coverage: 1, source_mode: 'mock' },
-    rates: { domain: 'rates', score: -10, weight: 15, drivers: [], contrarians: [], coverage: 1, source_mode: 'mock' },
-    earnings: { domain: 'earnings', score: 22, weight: 15, drivers: [], contrarians: [], coverage: 1, source_mode: 'mock' },
-    valuation: { domain: 'valuation', score: -14, weight: 10, drivers: [], contrarians: [], coverage: 1, source_mode: 'mock' },
-    risk: { domain: 'risk', score: 5, weight: 5, drivers: [], contrarians: [], coverage: 1, source_mode: 'mock' },
-  },
-  source_mode: 'mock',
-  methodology: { note: 'frontend mock fallback' },
+  domains: {},
+  source_mode: 'unavailable',
+  status: '데이터 부족',
+  methodology: { note: 'API unreachable or insufficient observations' },
 }
 
-const MOCK_REGIME: RegimePayload = {
-  label: 'Goldilocks',
-  quadrant: { growth: 'up', inflation: 'down' },
-  growth: { direction: 'up', level: 0.4 },
-  inflation: { direction: 'down', level: -0.2 },
-  drivers: [{ axis: 'growth', indicator_id: 'us_nfp' }],
+const EMPTY_REGIME: RegimePayload = {
+  label: '데이터 부족',
+  quadrant: { growth: 'n/a', inflation: 'n/a' },
+  growth: { direction: null, level: null },
+  inflation: { direction: null, level: null },
+  drivers: [],
   contrarians: [],
   similar_regimes: [],
-  confidence: 0.55,
-  source_mode: 'mock',
-  as_of: new Date().toISOString().slice(0, 10),
+  confidence: 0,
+  source_mode: 'unavailable',
+  status: '데이터 부족',
+  as_of: null,
 }
 
-export async function getScores(): Promise<{ data: ScoresPayload; sourceMode: 'api' | 'mock' }> {
+export async function getScores(): Promise<{ data: ScoresPayload; sourceMode: 'api' | 'empty' }> {
   try {
     const data = await fetchJson<ScoresPayload>('/api/v1/scores')
     return { data, sourceMode: 'api' }
   } catch {
-    return { data: MOCK_SCORES, sourceMode: 'mock' }
+    return { data: EMPTY_SCORES, sourceMode: 'empty' }
   }
 }
 
-export async function getRegime(): Promise<{ data: RegimePayload; sourceMode: 'api' | 'mock' }> {
+export async function getRegime(): Promise<{ data: RegimePayload; sourceMode: 'api' | 'empty' }> {
   try {
     const data = await fetchJson<RegimePayload>('/api/v1/regime')
     return { data, sourceMode: 'api' }
   } catch {
-    return { data: MOCK_REGIME, sourceMode: 'mock' }
+    return { data: EMPTY_REGIME, sourceMode: 'empty' }
   }
 }
 
 export async function getPortfolioOverview(
   accountId = 'demo-main',
-): Promise<{ data: PortfolioOverview; sourceMode: 'api' | 'mock' }> {
+): Promise<{ data: PortfolioOverview; sourceMode: 'api' | 'empty' }> {
   try {
     const data = await fetchJson<PortfolioOverview>(
       `/api/v1/portfolio/${encodeURIComponent(accountId)}/overview`,
@@ -169,108 +204,45 @@ export async function getPortfolioOverview(
         },
         performance: {
           as_of: new Date().toISOString().slice(0, 10),
-          total_value: 45000000,
-          net_invested: 38000000,
-          simple_return: 0.184,
-          annualized_return: 0.055,
-          xirr: 0.061,
-          mdd: -0.18,
-          years: 3.5,
+          total_value: 0,
+          net_invested: 0,
+          simple_return: null,
+          annualized_return: null,
+          xirr: null,
+          mdd: null,
+          years: 0,
         },
-        holdings: [
-          {
-            symbol: 'SPY',
-            asset_class: 'etf',
-            quantity: 30,
-            avg_cost: 580000,
-            mark_price: 560,
-            fx_rate: 1380,
-            market_value: 23184000,
-            cost_basis: 17400000,
-            unrealized_pnl: 5784000,
-            weight: 0.45,
-          },
-          {
-            symbol: '005930.KS',
-            asset_class: 'equity',
-            quantity: 70,
-            avg_cost: 67000,
-            mark_price: 78000,
-            fx_rate: 1,
-            market_value: 5460000,
-            cost_basis: 4690000,
-            unrealized_pnl: 770000,
-            weight: 0.12,
-          },
-          {
-            symbol: 'CASH',
-            asset_class: 'cash',
-            quantity: 5000000,
-            avg_cost: 1,
-            mark_price: 1,
-            fx_rate: 1,
-            market_value: 5000000,
-            cost_basis: 5000000,
-            unrealized_pnl: 0,
-            weight: 0.11,
-          },
-        ],
-        allocation: [
-          { asset_class: 'etf', actual_weight: 0.45, target_weight: 0.05, drift: 0.4, market_value: 23184000 },
-          { asset_class: 'equity', actual_weight: 0.12, target_weight: 0.55, drift: -0.43, market_value: 5460000 },
-          { asset_class: 'cash', actual_weight: 0.11, target_weight: 0.1, drift: 0.01, market_value: 5000000 },
-        ],
-        dividends: {
-          gross_base: 450000,
-          tax_base: 70000,
-          net_base: 380000,
-          by_symbol: { SPY: 250000, '005930.KS': 130000 },
-          count: 5,
-        },
+        holdings: [],
+        allocation: [],
+        dividends: { gross_base: 0, tax_base: 0, net_base: 0, by_symbol: {}, count: 0 },
         targets: [],
-        macro_exposure: [
-          {
-            symbol: 'SPY',
-            themes: ['US growth'],
-            note: '목 폴백 — API 연결 시 Phase 3 국면과 함께 표시',
-          },
-        ],
-        source_mode: 'mock',
-        disclaimer: '목 데이터이며 매매를 권유하지 않습니다.',
+        macro_exposure: [],
+        source_mode: 'demo',
+        disclaimer: '데모 포트폴리오 — 시세 연동 전 샘플입니다. 매매를 권유하지 않습니다.',
       },
-      sourceMode: 'mock',
+      sourceMode: 'empty',
     }
   }
 }
 
 export async function getCorrelation(
   ids?: string[],
-): Promise<{ data: CorrelationPayload; sourceMode: 'api' | 'mock' }> {
+): Promise<{ data: CorrelationPayload; sourceMode: 'api' | 'empty' }> {
   const qs = ids?.length ? `?ids=${ids.join(',')}` : ''
   try {
     const data = await fetchJson<CorrelationPayload>(`/api/v1/correlation${qs}`)
     return { data, sourceMode: 'api' }
   } catch {
-    const indicators = ids?.length
-      ? ids
-      : ['us_sp500', 'us_treasury_10y', 'us_vix', 'us_hy_spread']
-    const matrix: Record<string, Record<string, number | null>> = {}
-    for (const a of indicators) {
-      matrix[a] = {}
-      for (const b of indicators) {
-        matrix[a][b] = a === b ? 1 : Number((Math.sin(a.length + b.length) * 0.4).toFixed(2))
-      }
-    }
     return {
       data: {
-        indicators,
-        matrix,
+        indicators: ids?.length ? ids : [],
+        matrix: {},
         observations_span: { points: 0 },
         pairs_computed: 0,
-        source_mode: 'mock',
-        method: 'mock',
+        source_mode: 'unavailable',
+        method: 'unavailable',
       },
-      sourceMode: 'mock',
+      sourceMode: 'empty',
     }
   }
 }

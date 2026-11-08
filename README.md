@@ -9,7 +9,7 @@
 | 경로 | 역할 |
 | --- | --- |
 | `backend/` | FastAPI (health, 지표·관측 조회, 수집 잡 트리거) |
-| `collectors/` | FRED 수집 + BLS/BEA 스켈레톤 + Yahoo 시장 스켈레톤 |
+| `collectors/` | FRED 실수집 + BLS/BEA 스켈레톤 + Yahoo 실종가(프로토타입) |
 | `scheduler/` | APScheduler 일일 잡 골격 |
 | `database/migrations/` | PostgreSQL DDL |
 | `config/indicators.yaml` | 초기 핵심 지표 30개 |
@@ -62,9 +62,10 @@ npm install
 npm run dev
 ```
 
-- 개발 서버: http://localhost:5173  
+- 개발 서버: http://localhost:5173 (`--host 0.0.0.0`)  
 - Vite가 `/api`, `/health`를 `VITE_PROXY_TARGET`(기본 `http://localhost:8000`)으로 프록시합니다.  
-- API가 없거나 관측이 비어 있으면 **샘플(목) 데이터로 자동 폴백**하며, 카드에 `api`/`mock` 배지가 표시됩니다.
+- **기본은 실관측만 표시**합니다. 관측이 없으면 `n/a` / 「데이터 부족」이며 MOCK/SYNTHETIC 점수를 자동으로 채우지 않습니다.  
+- 합성 폴백은 `ALLOW_SYNTHETIC_FALLBACK=1`(테스트 전용)일 때만 허용됩니다.
 
 프로덕션 빌드 확인:
 
@@ -74,7 +75,18 @@ cd frontend && npm run build && npm run preview
 
 ## 수동 수집
 
+FRED는 `FRED_API_KEY`가 필수입니다(미설정 시 잡이 `failed` + 명확한 오류).  
+Yahoo 지수는 키 없이 프로토타입 호출이 가능합니다(ToS 검토 필수).
+
 ```bash
+# 지수 실종가 (S&P/NASDAQ/KOSPI/Shanghai/VIX 등) → indicator_observations
+python scripts/run_collect.py yahoo --live
+# 또는
+curl -X POST http://localhost:8000/api/v1/jobs/run \
+  -H 'Content-Type: application/json' \
+  -d '{"provider":"yahoo","job_type":"daily","live":true}'
+
+# FRED 거시·금리·유동성 (키 필요)
 curl -X POST http://localhost:8000/api/v1/jobs/run \
   -H 'Content-Type: application/json' \
   -d '{"provider":"fred","job_type":"daily"}'

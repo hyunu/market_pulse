@@ -52,7 +52,14 @@ def compute_correlation_matrix(
                     pairs_used += 1
 
     modes = {b.source_mode for b in bundles.values()}
-    source_mode = "api" if modes == {"api"} else ("mixed" if "api" in modes else "synthetic")
+    if modes == {"api"}:
+        source_mode = "api"
+    elif "api" in modes:
+        source_mode = "mixed"
+    elif "synthetic" in modes:
+        source_mode = "synthetic"
+    else:
+        source_mode = "unavailable"
     return {
         "indicators": ids,
         "matrix": matrix,

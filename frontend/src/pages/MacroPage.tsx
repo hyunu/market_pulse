@@ -44,7 +44,7 @@ export function MacroPage() {
             </div>
           </section>
 
-          <section className="mt-12">
+          <section className="mt-[var(--space-6)]">
             <h2 className="mp-section-title">Inflation</h2>
             <div className="mp-metric-grid mt-3 grid-cols-2 xl:grid-cols-4">
               {inflation.series.map((s, i) => (
