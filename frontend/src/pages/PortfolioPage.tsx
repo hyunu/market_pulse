@@ -73,11 +73,12 @@ export function PortfolioPage() {
       />
 
       <div className="mp-banner mp-banner-demo mb-[var(--space-5)]">
-        <p>
-          <strong>DEMO PORTFOLIO</strong>
-          <span className="mx-2 text-[var(--color-line-strong)]">·</span>
-          시세 연동 전 데모 원장입니다. 시장 페이지의 실종가와 혼동하지 마세요. 매매를 권유하지
-          않습니다.
+        <p className="font-display text-[1.05rem] font-semibold tracking-tight text-[var(--color-accent-ink)]">
+          DEMO PORTFOLIO
+        </p>
+        <p className="mt-[var(--space-2)] text-[13px] leading-relaxed">
+          시세 연동 전 <strong>데모 원장</strong>입니다. Dashboard의 Yahoo 실종가와 별개이며, 매매를
+          권유하지 않습니다.
         </p>
       </div>
 

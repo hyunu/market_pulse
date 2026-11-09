@@ -12,6 +12,7 @@ const NAV = [
   { to: '/equity', label: 'Equity' },
   { to: '/risk', label: 'Risk' },
   { to: '/portfolio', label: 'Portfolio' },
+  { to: '/settings', label: 'Settings' },
 ]
 
 export function Layout() {

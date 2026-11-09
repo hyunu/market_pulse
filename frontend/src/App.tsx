@@ -7,6 +7,7 @@ import { LiquidityPage } from './pages/LiquidityPage'
 import { MacroPage } from './pages/MacroPage'
 import { PortfolioPage } from './pages/PortfolioPage'
 import { RiskPage } from './pages/RiskPage'
+import { SettingsPage } from './pages/SettingsPage'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="equity" element={<EquityPage />} />
           <Route path="risk" element={<RiskPage />} />
           <Route path="portfolio" element={<PortfolioPage />} />
+          <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

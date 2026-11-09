@@ -30,4 +30,5 @@ frontend/dist/
 config/.env
 .env.local
 /data/
+.data/
 tmp/

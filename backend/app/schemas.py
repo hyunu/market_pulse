@@ -141,5 +141,21 @@ class TransactionCreate(BaseModel):
     price: float
     fee: float = 0
     currency: str = "USD"
+
+
+class AiSettingsUpdate(BaseModel):
+    enabled: bool | None = None
+    provider: Literal["openai", "anthropic", "google", "azure_openai", "custom_openai"] | None = None
+    base_url: str | None = None
+    model: str | None = None
+    organization: str | None = None
+    extra_header_name: str | None = None
+    extra_header_value: str | None = None
+    # 새 키 입력 시에만 전송. 빈 문자열이면 기존 유지.
+    api_key: str | None = Field(default=None, description="평문 키(서버에서만 암호화 저장)")
+
+
+class BriefRequest(BaseModel):
+    use_ai: bool = True
     fx_rate: float = 1
     note: str | None = None

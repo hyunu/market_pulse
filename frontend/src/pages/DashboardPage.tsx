@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { AiBriefPanel } from '../components/AiBriefPanel'
 import { AnalyticsPanel } from '../components/AnalyticsPanel'
 import { BrandMark, PulseGlyph } from '../components/BrandMark'
 import { FeedBanner } from '../components/FeedBanner'
@@ -59,6 +60,10 @@ export function DashboardPage() {
 
           <section className="mt-[var(--space-6)]">
             <AnalyticsPanel />
+          </section>
+
+          <section className="mt-[var(--space-6)]">
+            <AiBriefPanel />
           </section>
 
           <section className="mt-[var(--space-6)] grid gap-[var(--space-6)] lg:grid-cols-[1.55fr_1fr]">
