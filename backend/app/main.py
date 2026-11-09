@@ -26,7 +26,11 @@ from backend.app.portfolio import (
     portfolio_overview,
 )
 from backend.app.portfolio.service import persist_snapshot
+from backend.app.ai import clear_ai_api_key, generate_daily_brief, get_ai_settings_public, upsert_ai_settings
+from backend.app.jobs_guard import check_collect_cooldown, mark_collect_started
 from backend.app.schemas import (
+    AiSettingsUpdate,
+    BriefRequest,
     CorrelationResponse,
     FeedStatusResponse,
     HealthResponse,
@@ -261,6 +265,11 @@ def recent_jobs(limit: int = Query(default=20, ge=1, le=100)) -> list[JobOut]:
 def run_job(body: RunJobRequest) -> RunJobResponse:
     """수집 트리거. API 키는 서버 env에서만 읽음 (요청 바디/프론트에 키 금지)."""
     settings = get_settings()
+    blocked = check_collect_cooldown(body.provider, settings.collect_cooldown_sec)
+    if blocked:
+        raise HTTPException(status_code=429, detail=blocked)
+
+    mark_collect_started(body.provider)
     if body.provider == "fred":
         if not settings.fred_key_configured:
             logger.error("FRED collect refused: FRED_API_KEY not configured in server env")
@@ -282,6 +291,34 @@ def run_job(body: RunJobRequest) -> RunJobResponse:
     else:
         raise HTTPException(status_code=400, detail="unsupported provider")
     return RunJobResponse(result=result)
+
+
+@app.get("/api/v1/settings/ai")
+def get_ai_settings() -> dict[str, Any]:
+    return get_ai_settings_public()
+
+
+@app.put("/api/v1/settings/ai")
+def put_ai_settings(body: AiSettingsUpdate) -> dict[str, Any]:
+    try:
+        return upsert_ai_settings(body.model_dump(exclude_unset=True))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.delete("/api/v1/settings/ai/key")
+def delete_ai_key() -> dict[str, Any]:
+    return clear_ai_api_key()
+
+
+@app.get("/api/v1/brief")
+def get_brief(use_ai: bool = Query(default=True)) -> dict[str, Any]:
+    return generate_daily_brief(use_ai=use_ai)
+
+
+@app.post("/api/v1/brief")
+def post_brief(body: BriefRequest) -> dict[str, Any]:
+    return generate_daily_brief(use_ai=body.use_ai)
 
 
 @app.get("/api/v1/scores", response_model=ScoresResponse)

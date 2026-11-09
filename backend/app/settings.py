@@ -15,9 +15,12 @@ class Settings(BaseSettings):
     indicators_yaml: str = "config/indicators.yaml"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
-    app_version: str = "0.4.1"
+    app_version: str = "0.5.0"
     # 테스트/오프라인 전용. 기본 False — 실서비스에서 가짜 시계열 금지
     allow_synthetic_fallback: bool = False
+    # AI 설정 암호화 키 (Fernet). 비어 있으면 .data/settings.fernet.key 자동 생성
+    settings_fernet_key: str = ""
+    collect_cooldown_sec: float = 45.0
 
     @property
     def indicators_path(self) -> Path:

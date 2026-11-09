@@ -17,7 +17,18 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { Accept: 'application/json', ...(init?.headers || {}) },
   })
   if (!res.ok) {
-    throw new Error(`HTTP ${res.status} ${path}`)
+    let detail = ''
+    try {
+      const body = (await res.json()) as { detail?: unknown }
+      if (typeof body.detail === 'string') detail = body.detail
+      else if (body.detail && typeof body.detail === 'object') {
+        const d = body.detail as { message?: string; retry_after_sec?: number }
+        detail = d.message || JSON.stringify(body.detail)
+      }
+    } catch {
+      detail = ''
+    }
+    throw new Error(detail || `HTTP ${res.status} ${path}`)
   }
   return res.json() as Promise<T>
 }
@@ -243,6 +254,82 @@ export async function getCorrelation(
         method: 'unavailable',
       },
       sourceMode: 'empty',
+    }
+  }
+}
+
+export type AiProviderId = 'openai' | 'anthropic' | 'google' | 'azure_openai' | 'custom_openai'
+
+export type AiPreset = {
+  id: AiProviderId
+  label: string
+  default_base_url: string
+  default_model: string
+  style: string
+}
+
+export type AiSettingsPublic = {
+  enabled: boolean
+  provider: AiProviderId | string
+  base_url: string
+  model: string
+  organization?: string | null
+  extra_header_name?: string | null
+  extra_header_set: boolean
+  api_key_set: boolean
+  api_key_hint?: string | null
+  presets: AiPreset[]
+  note?: string
+}
+
+export type BriefPayload = {
+  mode: string
+  title: string
+  text: string
+  as_of: string
+  ai_configured: boolean
+  provider?: string
+  model?: string
+  error?: string
+}
+
+export async function getAiSettings(): Promise<AiSettingsPublic> {
+  return fetchJson<AiSettingsPublic>('/api/v1/settings/ai')
+}
+
+export async function saveAiSettings(
+  body: Partial<{
+    enabled: boolean
+    provider: AiProviderId
+    base_url: string
+    model: string
+    organization: string | null
+    extra_header_name: string | null
+    extra_header_value: string | null
+    api_key: string
+  }>,
+): Promise<AiSettingsPublic> {
+  return fetchJson<AiSettingsPublic>('/api/v1/settings/ai', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
+export async function clearAiKey(): Promise<AiSettingsPublic> {
+  return fetchJson<AiSettingsPublic>('/api/v1/settings/ai/key', { method: 'DELETE' })
+}
+
+export async function getBrief(useAi = true): Promise<BriefPayload> {
+  try {
+    return await fetchJson<BriefPayload>(`/api/v1/brief?use_ai=${useAi ? 'true' : 'false'}`)
+  } catch {
+    return {
+      mode: 'rule',
+      title: '일일 브리프',
+      text: '브리프 API에 연결할 수 없습니다.',
+      as_of: new Date().toISOString().slice(0, 10),
+      ai_configured: false,
     }
   }
 }

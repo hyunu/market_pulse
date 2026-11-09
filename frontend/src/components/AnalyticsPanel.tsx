@@ -102,15 +102,16 @@ export function AnalyticsPanel() {
       </div>
 
       {insufficient ? (
-        <div className="mp-banner">
-          <p>
-            <strong>데이터 부족</strong>
+        <div className="mp-banner border-[var(--color-accent)]">
+          <p className="text-[13px] leading-snug">
+            <strong className="text-[var(--color-accent-ink)]">데이터 부족</strong>
             <span className="mx-2 text-[var(--color-line-strong)]">·</span>
-            가짜 점수를 표시하지 않습니다. FRED 거시 시리즈 적재 후 Market Score / Regime이
-            활성화됩니다.
+            가짜 점수를 채우지 않습니다. Yahoo 지수는 표시되지만, 성장×물가 국면은 FRED 거시
+            관측이 필요합니다.
           </p>
-          <p className="mt-[var(--space-1)] text-[11px] text-[var(--color-muted)]">
-            confidence {formatPct((scores.confidence || 0) * 100, 0)} · source {scoreMode}
+          <p className="mt-[var(--space-2)] text-[11px] text-[var(--color-muted)]">
+            confidence {formatPct((scores.confidence || 0) * 100, 0)} · source {scoreMode} · Settings에서
+            AI 브리프만 별도 연결 가능
           </p>
         </div>
       ) : null}
